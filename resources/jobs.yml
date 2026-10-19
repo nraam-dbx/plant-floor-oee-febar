@@ -30,3 +30,22 @@ resources:
             warehouse_id: ${var.warehouse_id}
             file:
               path: ../notebooks/11_genai_root_cause.sql
+        - task_key: refresh_lakebase_sync
+          depends_on: [{task_key: genai_root_cause}]
+          notebook_task:
+            notebook_path: ../lakebase/refresh_synced_tables.py
+
+    plant_oee_lakebase_setup:
+      name: plant_oee_lakebase_setup
+      description: Create the writable ops schema in Lakebase Postgres, smoke-test read + write, (re)create views over the reverse-synced change feed.
+        Run ops/lakebase_reverse_sync.sh once after the first run (creates the CDF config).
+      tasks:
+        - task_key: setup_ops_tables
+          notebook_task:
+            notebook_path: ../lakebase/setup_ops_tables.py
+        - task_key: reverse_sync_views
+          depends_on: [{task_key: setup_ops_tables}]
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../lakebase/02_reverse_sync_views.sql

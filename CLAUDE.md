@@ -54,6 +54,16 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - `notebooks/11_genai_root_cause.sql` (SQL task `genai_root_cause`): `ai_query` → `gold_asset_risk_insights` for at-risk assets only.
 - Rerun just these: `databricks bundle run plant_oee_build --only train_at_risk_model,genai_root_cause`. Evidence: `python3 ops/stage3_evidence.py`.
 
+## Lakebase (Stage 4)
+- Project `projects/plant-floor-oee-febar` (PG17, 0.5–2 CU, suspend 300s) + synced tables in `resources/lakebase.yml`:
+  `gold_at_risk_queue → lb_at_risk_queue` (TRIGGERED, pk asset_id), `gold_oee_shift → lb_oee_shift` (SNAPSHOT). In Postgres:
+  db `databricks_postgres`, schema `plant_floor_oee_febar`. Build job task `refresh_lakebase_sync` triggers both after each build.
+- Writable tables `ops.supervisor_actions`, `ops.work_order_requests` (`lakebase/01_ops_schema.sql`, job `plant_oee_lakebase_setup`).
+- Reverse sync: CDF config `ops_to_uc` (`ops/lakebase_reverse_sync.sh`, run once) → UC `lb_supervisor_actions_history`,
+  `lb_work_order_requests_history`; views `gold_supervisor_actions`, `gold_work_order_requests`, `gold_alert_response`
+  (`lakebase/02_reverse_sync_views.sql`). Smoke-test rows use `acted_by='setup-smoke-test'` and are excluded from KPIs.
+- Evidence: `python3 ops/stage4_evidence.py`.
+
 ## Notes / issues encountered
 - Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
 - **Workspace is SERVERLESS-ONLY** ("Only serverless compute is supported"): no job/ML clusters. ML notebook pip-installs
@@ -66,6 +76,12 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - `ai_query` endpoint: `databricks-claude-sonnet-4-6`. sonnet-5-5 errors "not supported for batch inference"; sonnet-5 / gpt-5-4
   also failed a 1-row ai_query test. LLM invented SOP/manual refs until the prompt forbade un-given references.
 - MLflow pyfunc of an sklearn model logged with `pyfunc_predict_fn="predict_proba"` returns [n,2] — take column 1.
+- No CREATE CATALOG on the metastore → no Lakebase UC catalog; synced tables sit in the project schema (`branch` + `postgres_database` set).
+- CDF reverse sync silently SKIPS tables without `REPLICA IDENTITY FULL` (see `list-cdf-statuses <cdf-config>`).
+- psycopg-binary on serverless aborts the Python process (SIGABRT) during libpq's GSSAPI probe → always `gssencmode="disable"`.
+  The job still reported SUCCESS after the crash → notebooks end with an assert + `dbutils.notebook.exit`.
+- `databricks jobs run-now --json` needs `job_id` inside the JSON (positional arg + --json errors); don't discard its output.
+- PyPI is blocked on this laptop → anything needing pip runs as a Databricks task.
 - Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
 - `plant_hr_admins` is a WORKSPACE group (id 2126379324037637); mask uses `is_member()` because there is no account-console access
   on the FEVM account, so `is_account_group_member()` can't see it. Unmask path (adding a member) not yet verified.

@@ -1,0 +1,41 @@
+# Stage 4 · Lakebase (Autoscaling Postgres) as code: project + forward syncs Delta -> Postgres.
+# Synced tables live in the project schema as lb_* (UC side) and as Postgres tables in schema plant_floor_oee_febar
+# of database databricks_postgres. (No separate Lakebase UC catalog: the build user lacks CREATE CATALOG.)
+# Reverse sync (Postgres ops.* -> Delta) uses a change-data-feed config, created by ops/lakebase_setup.sh
+# (Beta; not yet a bundle resource).
+resources:
+  postgres_projects:
+    plant_oee_lakebase:
+      project_id: plant-floor-oee-febar
+      display_name: plant-floor-oee-febar
+      pg_version: 17
+      default_endpoint_settings:
+        autoscaling_limit_min_cu: 0.5
+        autoscaling_limit_max_cu: 2
+        suspend_timeout_duration: 300s
+      custom_tags:
+        - {key: project, value: plant_floor_oee_febar}
+
+  postgres_synced_tables:
+    at_risk_queue:
+      synced_table_id: ${var.catalog}.${var.schema}.lb_at_risk_queue
+      source_table_full_name: ${var.catalog}.${var.schema}.gold_at_risk_queue
+      primary_key_columns: [asset_id]
+      scheduling_policy: TRIGGERED
+      branch: ${resources.postgres_projects.plant_oee_lakebase.name}/branches/production
+      postgres_database: databricks_postgres
+      create_database_objects_if_missing: true
+      new_pipeline_spec:
+        storage_catalog: ${var.catalog}
+        storage_schema: ${var.schema}
+    oee_shift:
+      synced_table_id: ${var.catalog}.${var.schema}.lb_oee_shift
+      source_table_full_name: ${var.catalog}.${var.schema}.gold_oee_shift
+      primary_key_columns: [asset_id, shift_id]
+      scheduling_policy: SNAPSHOT
+      branch: ${resources.postgres_projects.plant_oee_lakebase.name}/branches/production
+      postgres_database: databricks_postgres
+      create_database_objects_if_missing: true
+      new_pipeline_spec:
+        storage_catalog: ${var.catalog}
+        storage_schema: ${var.schema}

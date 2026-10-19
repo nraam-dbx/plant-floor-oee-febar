@@ -74,3 +74,10 @@ ALTER VOLUME raw SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'landing', 'oee
 -- service principals (App, agents) and, if needed, named users. No `account users` grant.
 -- Runtime identities (App service principal, agent run-as) get real least-privilege grants in their own stage
 -- scripts (Lakebase / agents / app), since service principals can be created and granted from the workspace.
+
+-- ---------- Stage 3-4 tables: model outputs, Lakebase synced + reverse-synced tables ----------
+ALTER TABLE gold_asset_risk          SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'gold', 'oee_data_owner' = 'operations_excellence', 'oee_data_steward' = 'data_science', 'oee_ml_output' = 'oee_at_risk_model');
+ALTER TABLE gold_asset_risk_insights SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'gold', 'oee_data_owner' = 'operations_excellence', 'oee_data_steward' = 'reliability_engineering', 'oee_genai_output' = 'true');
+ALTER TABLE gold_at_risk_queue       SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'gold', 'oee_data_owner' = 'operations_excellence', 'oee_data_steward' = 'plant_performance', 'oee_served_by' = 'lakebase');
+ALTER TABLE lb_supervisor_actions_history  SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'operational', 'oee_data_owner' = 'operations_excellence', 'oee_source_system' = 'lakebase_app', 'oee_sync' = 'reverse_cdf');
+ALTER TABLE lb_work_order_requests_history SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'operational', 'oee_data_owner' = 'operations_excellence', 'oee_source_system' = 'lakebase_app', 'oee_sync' = 'reverse_cdf');
