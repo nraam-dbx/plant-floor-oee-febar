@@ -49,3 +49,20 @@ databricks apps deploy plant-floor-oee-febar --source-code-path /Workspace/Users
   "a power-generation equipment manufacturer". Synthetic data only. Customer-named collateral goes in
   `customer_private/` (gitignored, never pushed).
 - Evidence rule: evaluator reads TEXT only. Commit outputs to `evidence/` (ipynb with outputs, JSON/CSV, logs).
+
+## Design (six stages, one data journey)
+1. **Lakeflow** — OT: 1-min historian tags + machine states/alarms (Auto Loader, streaming) · IT: ERP/MES production
+   orders, work orders, scrap/rework, shift calendar (batch). SDP pipeline w/ expectations → bronze/silver/gold;
+   `gold_oee_shift` = Availability × Performance × Quality per asset per shift.
+2. **Unity Catalog** — IT vs OT domains, owner/steward tags, lineage tag→OEE, operator-ID masking.
+3. **ML/GenAI** — MLflow model (UC, with signature) predicting next-shift OEE < target; `ai_query` + manuals
+   Vector Search for probable root cause and draft work order.
+4. **Lakebase** — synced at-risk table for low-latency app reads; supervisor actions written to Postgres and
+   reverse-synced to Delta (alert→action latency).
+5. **Genie agent** — two layers:
+   - Genie space "Plant OEE Analyst" over gold OEE, downtime reasons, risk scores, work orders (instructions,
+     sample SQL, trusted assets), with Agent mode for multi-step "why did OEE drop?" analysis.
+   - Agent Bricks **Supervisor** "Plant-Floor OEE Agent" routing to: the Genie space (metrics), a Knowledge
+     Assistant over repair manuals/SOPs (how to fix), and UC function tools (`get_asset_risk`,
+     `create_work_order` → Lakebase). Served endpoint; evaluated with MLflow LLM judges.
+6. **App** — OEE board + at-risk queue (Lakebase) + chat panel calling the Supervisor agent.
