@@ -1,0 +1,19 @@
+# Plant-floor OEE (IT/OT integration) — everything deployable is defined here as code.
+bundle:
+  name: plant_floor_oee_febar
+
+variables:
+  catalog:      {default: nraameast1_catalog}
+  schema:       {default: plant_floor_oee_febar}
+  warehouse_id: {default: ba24ff79986686a9}
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      profile: fevm-nraameast1
+      root_path: /Workspace/Users/n.raam@databricks.com/.bundle/${bundle.name}/${bundle.target}

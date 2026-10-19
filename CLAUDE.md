@@ -34,7 +34,19 @@ databricks sync . /Workspace/Users/n.raam@databricks.com/plant_floor_oee_febar/a
 databricks apps deploy plant-floor-oee-febar --source-code-path /Workspace/Users/n.raam@databricks.com/plant_floor_oee_febar/app -p fevm-nraameast1
 ```
 
+## Build (Stage 1 — data + Lakeflow), Databricks Asset Bundle at repo root
+```
+# one-time: schema + raw volume (notebooks/00_setup.sql, run on the warehouse)
+databricks bundle deploy                 # target dev, profile fevm-nraameast1
+databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plant_oee_medallion (full refresh)
+```
+- Generator: `data_generation/generate_plant_data.py` → `/Volumes/nraameast1_catalog/plant_floor_oee_febar/raw/{ot,it}/…`
+  (28 days from 2026-09-21, seed 42, 12 assets / 5 work centers). OT keyed by historian tag path, IT by ERP `EQ-1000x`;
+  `silver_assets.historian_prefix` is the IT↔OT key map.
+- Pipeline SQL: `pipeline/transformations/01_bronze|02_silver|03_gold.sql`; `${raw_path}` from pipeline config.
+
 ## Notes / issues encountered
+- Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
 <!-- Log fixes and conventions here as the project evolves. -->
 
 ## FEBAR submission

@@ -1,0 +1,15 @@
+resources:
+  pipelines:
+    plant_oee_pipeline:
+      name: plant_oee_medallion
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      photon: true
+      channel: CURRENT
+      root_path: ../pipeline
+      libraries:
+        - glob:
+            include: ../pipeline/transformations/**
+      configuration:
+        raw_path: /Volumes/${var.catalog}/${var.schema}/raw
