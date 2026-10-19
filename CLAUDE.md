@@ -48,13 +48,24 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 ## Governance (Stage 2)
 `python3 ops/run_sql_file.py agents/01_governance.sql` (mask function + tags) → evidence `python3 ops/stage2_evidence.py`.
 
+## ML + GenAI (Stage 3)
+- `notebooks/10_train_oee_at_risk.py` (job task `train_at_risk_model`, serverless): HistGradientBoosting on `gold_shift_features`,
+  label `next_shift_oee < 0.65`, time split 20d/8d, registers `oee_at_risk_model` (alias `champion`), writes `gold_asset_risk` + SHAP drivers.
+- `notebooks/11_genai_root_cause.sql` (SQL task `genai_root_cause`): `ai_query` → `gold_asset_risk_insights` for at-risk assets only.
+- Rerun just these: `databricks bundle run plant_oee_build --only train_at_risk_model,genai_root_cause`. Evidence: `python3 ops/stage3_evidence.py`.
+
 ## Notes / issues encountered
 - Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
+- **Workspace is SERVERLESS-ONLY** ("Only serverless compute is supported"): no job/ML clusters. ML notebook pip-installs
+  mlflow/sklearn/shap. Always read full `bundle deploy` output — a failed deploy once left the job on old tasks.
 - Workspace has many workspace-wide **governed tag policies** (`Domain`, `PII`, `data_owner`, `data_product`…). Our UC tags
   are prefixed `oee_` (`oee_domain`, `oee_layer`, `oee_data_owner`, `oee_data_steward`, `oee_pii`); gold uses the governed
   `system.certification_status = certified`; schema uses `data_product = analytics` (allowed value).
 - PII masks live in the pipeline SQL (`MASK ${uc_catalog}.${uc_schema}.mask_pii`) — `mask_pii` must exist before the
   pipeline runs (agents/01_governance.sql). Tags set by ALTER survive pipeline updates.
+- `ai_query` endpoint: `databricks-claude-sonnet-4-6`. sonnet-5-5 errors "not supported for batch inference"; sonnet-5 / gpt-5-4
+  also failed a 1-row ai_query test. LLM invented SOP/manual refs until the prompt forbade un-given references.
+- MLflow pyfunc of an sklearn model logged with `pyfunc_predict_fn="predict_proba"` returns [n,2] — take column 1.
 - Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
 - `plant_hr_admins` is a WORKSPACE group (id 2126379324037637); mask uses `is_member()` because there is no account-console access
   on the FEVM account, so `is_account_group_member()` can't see it. Unmask path (adding a member) not yet verified.

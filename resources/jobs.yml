@@ -2,7 +2,8 @@ resources:
   jobs:
     plant_oee_build:
       name: plant_oee_build
-      description: Land synthetic IT + OT extracts, then refresh the Lakeflow medallion pipeline.
+      description: Land synthetic IT + OT extracts, refresh the Lakeflow medallion pipeline, retrain + score the at-risk model,
+        GenAI root cause. All serverless (the workspace allows serverless compute only).
       tasks:
         - task_key: generate_data
           notebook_task:
@@ -15,3 +16,17 @@ resources:
           pipeline_task:
             pipeline_id: ${resources.pipelines.plant_oee_pipeline.id}
             full_refresh: true
+        - task_key: train_at_risk_model
+          depends_on: [{task_key: refresh_pipeline}]
+          max_retries: 0
+          notebook_task:
+            notebook_path: ../notebooks/10_train_oee_at_risk.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+        - task_key: genai_root_cause
+          depends_on: [{task_key: train_at_risk_model}]
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../notebooks/11_genai_root_cause.sql

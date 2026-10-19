@@ -70,5 +70,7 @@ ALTER VOLUME raw SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'landing', 'oee
 --   plant_data_engineering: schema owner (bronze, silver, raw volume); runs the pipeline
 --   plant_hr_admins: no table grants — membership only unmasks operator PII via mask_pii
 --
+-- Decision (2026-10-19): no account admin -> grant UC privileges directly to account-level identities only:
+-- service principals (App, agents) and, if needed, named users. No `account users` grant.
 -- Runtime identities (App service principal, agent run-as) get real least-privilege grants in their own stage
 -- scripts (Lakebase / agents / app), since service principals can be created and granted from the workspace.

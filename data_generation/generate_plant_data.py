@@ -18,6 +18,8 @@
 # MAGIC Embedded stories (what the pipeline, model and agent should rediscover):
 # MAGIC * **Degradation → failure** — vibration/temperature creep and speed loss for 3–6 days before a long
 # MAGIC   unplanned stop (CNC-03 twice, plus random episodes elsewhere). This is the predictive signal.
+# MAGIC * **In-flight degradation** — CNC-02 starts degrading ~4 days before the window ends; its failure falls after
+# MAGIC   the window, so the latest-shift risk score should flag it (the "act now" case for the app and agent).
 # MAGIC * **Coating temperature excursions** — CTG-02 booth temperature spikes drive scrap (a Quality loss).
 # MAGIC * **Minor stops** — GRD-01 loses Performance to frequent 2–5 min stops.
 # MAGIC * **Data-quality defects** for the pipeline expectations: BAD OPC quality, out-of-range spikes,
@@ -64,7 +66,7 @@ WORK_CENTERS = {
 }
 #            asset    wc        degradation episodes   minor-stop p/min  scrap base  excursions/day
 ASSETS = [("CNC-01", "WC_MACH", 1,    0.004, 0.020, 0.0),
-          ("CNC-02", "WC_MACH", None, 0.004, 0.020, 0.0),
+          ("CNC-02", "WC_MACH", "inflight", 0.004, 0.020, 0.0),
           ("CNC-03", "WC_MACH", "hero", 0.005, 0.025, 0.0),
           ("CNC-04", "WC_MACH", None, 0.004, 0.020, 0.0),
           ("GRD-01", "WC_GRND", None, 0.016, 0.015, 0.0),
@@ -183,16 +185,22 @@ for i, (aid, wc, degr, p_minor, scrap_base, exc_per_day) in enumerate(ASSETS):
     # 3) degradation episodes ending in a long unplanned failure
     if degr == "hero":
         fail_mins = [int(10.4 * 1440), int(23.6 * 1440)]
+    elif degr == "inflight":                      # degrading NOW: failure due ~1 day after the window ends
+        fail_mins = [N + 1440]
     else:
         k = rng.poisson(degr) if degr else (1 if rng.random() < 0.25 else 0)
         fail_mins = sorted(int(x) for x in rng.uniform(6 * 1440, (DAYS - 0.5) * 1440, size=k))
     for f in fail_mins:
-        ramp = int(rng.uniform(3, 6) * 1440)
+        ramp = int(rng.uniform(3, 6) * 1440) if degr != "inflight" else int(5.0 * 1440)
         a = max(0, f - ramp)
-        d[a:f] = np.maximum(d[a:f], np.linspace(0, 1, f - a) ** 1.5)
+        curve = np.linspace(0, 1, f - a) ** 1.5
+        b = min(f, N)
+        d[a:b] = np.maximum(d[a:b], curve[:b - a])
         dur = int(rng.integers(180, 480))
         state[f:f + dur], reason[f:f + dur] = UNPLANNED, fmode
-        truth_rows.append(dict(asset_id=aid, failure_start=fmt(TS[f]), duration_min=dur, ramp_days=round(ramp / 1440, 1), failure_mode=fmode))
+        truth_rows.append(dict(asset_id=aid, failure_start=fmt(T0 + pd.Timedelta(minutes=f)), duration_min=dur,
+                               ramp_days=round(ramp / 1440, 1), failure_mode=fmode,
+                               note="after window (in progress)" if f >= N else ""))
 
     # 4) random short unplanned stops with no precursor (noise the model can't predict)
     for _ in range(rng.poisson(0.5 * DAYS)):
