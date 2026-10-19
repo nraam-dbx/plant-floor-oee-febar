@@ -45,8 +45,18 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
   `silver_assets.historian_prefix` is the IT↔OT key map.
 - Pipeline SQL: `pipeline/transformations/01_bronze|02_silver|03_gold.sql`; `${raw_path}` from pipeline config.
 
+## Governance (Stage 2)
+`python3 ops/run_sql_file.py agents/01_governance.sql` (mask function + tags) → evidence `python3 ops/stage2_evidence.py`.
+
 ## Notes / issues encountered
 - Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
+- Workspace has many workspace-wide **governed tag policies** (`Domain`, `PII`, `data_owner`, `data_product`…). Our UC tags
+  are prefixed `oee_` (`oee_domain`, `oee_layer`, `oee_data_owner`, `oee_data_steward`, `oee_pii`); gold uses the governed
+  `system.certification_status = certified`; schema uses `data_product = analytics` (allowed value).
+- PII masks live in the pipeline SQL (`MASK ${uc_catalog}.${uc_schema}.mask_pii`) — `mask_pii` must exist before the
+  pipeline runs (agents/01_governance.sql). Tags set by ALTER survive pipeline updates.
+- Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
+- Access grants to broad principals (e.g. `account users`) were NOT applied — pending user decision on consumer groups.
 <!-- Log fixes and conventions here as the project evolves. -->
 
 ## FEBAR submission

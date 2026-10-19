@@ -39,11 +39,16 @@ TBLPROPERTIES ('domain' = 'IT', 'source_system' = 'mes')
 AS SELECT *, _metadata.file_path AS source_file, current_timestamp() AS ingested_at
 FROM read_files('${raw_path}/it/shift_calendar', format => 'csv', header => true);
 
-CREATE OR REFRESH MATERIALIZED VIEW bronze_it_operators
-COMMENT 'IT: HR/MES operator roster (contains PII: full_name, badge_number).'
+CREATE OR REFRESH MATERIALIZED VIEW bronze_it_operators (
+  operator_id STRING, full_name STRING MASK ${uc_catalog}.${uc_schema}.mask_pii, badge_number STRING MASK ${uc_catalog}.${uc_schema}.mask_pii,
+  crew STRING, certification_level STRING, source_file STRING, ingested_at TIMESTAMP
+)
+COMMENT 'IT: HR/MES operator roster. PII (full_name, badge_number) is masked by UC function mask_pii.'
 TBLPROPERTIES ('domain' = 'IT', 'source_system' = 'mes', 'contains_pii' = 'true')
-AS SELECT *, _metadata.file_path AS source_file, current_timestamp() AS ingested_at
-FROM read_files('${raw_path}/it/operators', format => 'csv', header => true);
+AS SELECT operator_id, full_name, badge_number, crew, certification_level,
+  _metadata.file_path AS source_file, current_timestamp() AS ingested_at
+FROM read_files('${raw_path}/it/operators', format => 'csv', header => true,
+                schema => 'operator_id STRING, full_name STRING, badge_number STRING, crew STRING, certification_level STRING');
 
 CREATE OR REFRESH STREAMING TABLE bronze_it_production_orders
 COMMENT 'IT: ERP/MES production orders, one or two per asset per shift.'

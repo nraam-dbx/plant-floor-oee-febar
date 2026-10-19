@@ -13,3 +13,5 @@ resources:
             include: ../pipeline/transformations/**
       configuration:
         raw_path: /Volumes/${var.catalog}/${var.schema}/raw
+        uc_catalog: ${var.catalog}
+        uc_schema: ${var.schema}

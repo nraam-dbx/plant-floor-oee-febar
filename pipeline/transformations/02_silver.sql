@@ -24,11 +24,13 @@ AS SELECT CAST(shift_id AS STRING) AS shift_id, CAST(shift_date AS DATE) AS shif
   CAST(scheduled_minutes AS INT) AS scheduled_minutes
 FROM bronze_it_shift_calendar;
 
-CREATE OR REFRESH MATERIALIZED VIEW silver_operators
-COMMENT 'Operator roster. full_name and badge_number are PII (masked in Unity Catalog).'
+CREATE OR REFRESH MATERIALIZED VIEW silver_operators (
+  operator_id STRING, full_name STRING MASK ${uc_catalog}.${uc_schema}.mask_pii, badge_number STRING MASK ${uc_catalog}.${uc_schema}.mask_pii,
+  crew STRING, certification_level STRING
+)
+COMMENT 'Operator roster. full_name and badge_number are PII, masked by UC function mask_pii (plant_hr_admins unmask).'
 TBLPROPERTIES ('domain' = 'IT', 'contains_pii' = 'true')
-AS SELECT CAST(operator_id AS STRING) AS operator_id, CAST(full_name AS STRING) AS full_name,
-  CAST(badge_number AS STRING) AS badge_number, crew, certification_level
+AS SELECT operator_id, full_name, badge_number, crew, certification_level
 FROM bronze_it_operators;
 
 -- ============ OT ============
