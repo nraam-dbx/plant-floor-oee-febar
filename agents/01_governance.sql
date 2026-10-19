@@ -53,3 +53,22 @@ ALTER MATERIALIZED VIEW gold_asset_reliability SET TAGS ('oee_domain' = 'IT_OT',
 ALTER MATERIALIZED VIEW gold_shift_features SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'gold', 'oee_data_owner' = 'operations_excellence', 'oee_data_steward' = 'data_science', 'ml_feature_table' = 'true');
 
 ALTER VOLUME raw SET TAGS ('oee_domain' = 'IT_OT', 'oee_layer' = 'landing', 'oee_data_owner' = 'data_engineering');
+
+-- ---------- access by role (DESIGN — not applied in the FEVM demo workspace) ----------
+-- Unity Catalog grants need ACCOUNT-level groups; the build user is not an account admin on the FEVM account,
+-- so these groups can't be created here. In a customer account, create them in the account console, then run:
+--
+--   GRANT USE CATALOG ON CATALOG nraameast1_catalog TO `plant_ops_analysts`;
+--   GRANT USE SCHEMA ON SCHEMA plant_floor_oee_febar TO `plant_ops_analysts`;
+--   GRANT SELECT ON TABLE gold_oee_shift, gold_downtime_events, gold_asset_reliability,
+--                         gold_asset_shift_time, silver_assets TO `plant_ops_analysts`;   -- one GRANT per table
+--
+--   reliability_engineers: everything plant_ops_analysts has, plus SELECT on
+--     silver_ot_historian, silver_ot_tag_minute, silver_ot_alarms, silver_ot_machine_states, silver_work_orders
+--
+--   plant_data_science: USE SCHEMA, SELECT on gold_shift_features + silver_ot_*, CREATE MODEL, CREATE FUNCTION
+--   plant_data_engineering: schema owner (bronze, silver, raw volume); runs the pipeline
+--   plant_hr_admins: no table grants — membership only unmasks operator PII via mask_pii
+--
+-- Runtime identities (App service principal, agent run-as) get real least-privilege grants in their own stage
+-- scripts (Lakebase / agents / app), since service principals can be created and granted from the workspace.

@@ -58,7 +58,9 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
 - `plant_hr_admins` is a WORKSPACE group (id 2126379324037637); mask uses `is_member()` because there is no account-console access
   on the FEVM account, so `is_account_group_member()` can't see it. Unmask path (adding a member) not yet verified.
-- Access grants to broad principals (e.g. `account users`) were NOT applied — pending user decision on consumer groups.
+- Not an account admin on the FEVM account (profile `fevm-account` saved, account APIs return 'disabled for users without
+  account admin'). UC grants need account groups → human-role grants are DESIGN-only in agents/01_governance.sql.
+  Real grants go to service principals (App, agents) in their stages. Don't grant to `account users`.
 <!-- Log fixes and conventions here as the project evolves. -->
 
 ## FEBAR submission
