@@ -3,7 +3,7 @@
 --   * one schema, two governed domains (IT / OT) expressed as UC tags, with owner + steward per domain
 --   * PII (operator name, badge) masked by a UC function, applied as column masks inside the pipeline
 --   * access grants are NOT applied here (pending decision on which principals get gold read access)
--- Account group referenced: plant_hr_admins (may unmask PII). Until it exists, everyone sees masked values.
+-- Group referenced: plant_hr_admins (workspace group, created 2026-10-19; members may unmask PII). Empty = everyone masked.
 
 USE CATALOG nraameast1_catalog;
 USE SCHEMA plant_floor_oee_febar;
@@ -12,7 +12,7 @@ USE SCHEMA plant_floor_oee_febar;
 CREATE OR REPLACE FUNCTION mask_pii(value STRING)
 RETURNS STRING
 COMMENT 'Column mask for operator PII: plant_hr_admins see the value, everyone else sees an initial + ***.'
-RETURN CASE WHEN is_account_group_member('plant_hr_admins') THEN value
+RETURN CASE WHEN is_member('plant_hr_admins') THEN value   -- workspace group (FEVM: no account-console access)
             WHEN value IS NULL THEN NULL
             ELSE concat(left(value, 1), '***') END;
 

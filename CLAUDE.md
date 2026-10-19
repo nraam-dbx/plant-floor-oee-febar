@@ -56,6 +56,8 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - PII masks live in the pipeline SQL (`MASK ${uc_catalog}.${uc_schema}.mask_pii`) — `mask_pii` must exist before the
   pipeline runs (agents/01_governance.sql). Tags set by ALTER survive pipeline updates.
 - Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
+- `plant_hr_admins` is a WORKSPACE group (id 2126379324037637); mask uses `is_member()` because there is no account-console access
+  on the FEVM account, so `is_account_group_member()` can't see it. Unmask path (adding a member) not yet verified.
 - Access grants to broad principals (e.g. `account users`) were NOT applied — pending user decision on consumer groups.
 <!-- Log fixes and conventions here as the project evolves. -->
 

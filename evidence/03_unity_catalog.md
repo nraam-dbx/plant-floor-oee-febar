@@ -1,6 +1,6 @@
 # Evidence 03 — Unity Catalog governance (live metadata)
 
-Generated 2026-10-19 12:02 by `ops/stage2_evidence.py`. Governance is applied by `agents/01_governance.sql` (function + tags) and by column `MASK` clauses in the pipeline SQL.
+Generated 2026-10-19 13:19 by `ops/stage2_evidence.py`. Governance is applied by `agents/01_governance.sql` (function + tags) and by column `MASK` clauses in the pipeline SQL.
 
 ## PII masking — what a non-HR user sees (query as the build user, not in plant_hr_admins)
 
@@ -29,9 +29,9 @@ silver_operators    | full_name    | nraameast1_catalog.plant_floor_oee_febar.ma
 ## Mask function definition
 
 ```
-routine_name | routine_definition                                                                                                                                          | comment                                                                                          
--------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------
-mask_pii     | CASE WHEN is_account_group_member('plant_hr_admins') THEN value
+routine_name | routine_definition                                                                                                                                                                                   | comment                                                                                          
+-------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------
+mask_pii     | CASE WHEN is_member('plant_hr_admins') THEN value   -- workspace group (FEVM: no account-console access)
             WHEN value IS NULL THEN NULL
             ELSE concat(left(value, 1), '***') END | Column mask for operator PII: plant_hr_admins see the value, everyone else sees an initial + ***.
 ```
