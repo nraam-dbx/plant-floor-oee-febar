@@ -132,7 +132,7 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - Six integrated stages: Lakeflow → UC → Lakebase → ML/GenAI → Genie → App, all keyed on `asset_id` / `work_center`.
 - IT data (ERP/MES: production orders, work orders, quality/scrap, shifts) + OT data (historian/SCADA tag time-series, machine states/alarms).
   OEE = Availability × Performance × Quality. KPIs: OEE %, unplanned downtime hrs, MTTR/MTBF, scrap rate, throughput.
-- GitHub: https://github.com/nraam-dbx/plant-floor-oee-febar (PRIVATE while building; make PUBLIC before submitting).
+- GitHub: https://github.com/nraam-dbx/plant-floor-oee-febar (PUBLIC since 2026-10-27).
   Local git pinned to `nraam-dbx` via repo-local credential.helper (global active gh account is `n-raam_data`).
   `gh` for this repo: prefix with `GH_TOKEN=$(gh auth token --user nraam-dbx)`.
 - **Confidentiality:** the repo is public-bound. NO customer name, people, or customer data in tracked files — say
