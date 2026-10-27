@@ -1,0 +1,302 @@
+[
+ {
+  "kind": "title",
+  "title": "Catch OEE losses before they happen",
+  "subtitle": "IT + OT on one Databricks platform · turbine-component plant\nFEBAR build · Narasimhan Raam, Sr. Solutions Architect"
+ },
+ {
+  "kind": "basic",
+  "title": "The outcome, per line, per year",
+  "subtitle": "One 12-asset line, base case (assumptions on slide 8)",
+  "body": "+1.0 OEE point (range +0.7 to +1.7) by fixing degradation before it becomes a breakdown\n~500 fewer unplanned downtime hours and ~2,500 fewer scrapped parts\n≈ $2.75M a year (range $1.0M to $7.7M), before secondary-damage and throughput upside\nFailures flagged 57–86 h ahead; the model beats today's rule (precision 0.82 vs 0.67)\nSupervisor acted 1.5 min after the alert, with procedure, parts and work order ready"
+ },
+ {
+  "kind": "threecol",
+  "title": "Who it is for and what each gets",
+  "headers": [
+   "Exec sponsor",
+   "Domain owner",
+   "Technical owner"
+  ],
+  "bodies": [
+   "VP Manufacturing Operations\nPlant OEE toward the 75 % target without capital spend\nFewer missed shipments from unplanned stops\nOne governed OEE number across plants",
+   "Plant Reliability & Maintenance Engineering Manager\nNext-shift risk per asset, with the reason\nAI-drafted work orders tied to the manual procedure\nRun-to-failure turned into planned work",
+   "IT/OT Architect\nHistorian/SCADA and ERP/MES/CMMS on one asset key\nOne platform to ingest, govern, serve, predict, explain\nLeast privilege and lineage by default"
+  ]
+ },
+ {
+  "kind": "table",
+  "title": "Where OEE is lost: the hidden 13 %",
+  "data": [
+   [
+    "28-day baseline · 12 assets · 1,008 asset-shifts",
+    "All other shifts",
+    "4 days before a breakdown (130 shifts)"
+   ],
+   [
+    "OEE",
+    "76.5 %",
+    "58.2 %"
+   ],
+   [
+    "Availability",
+    "90.6 %",
+    "86.2 %"
+   ],
+   [
+    "Performance (speed loss, minor stops)",
+    "86.2 %",
+    "72.9 %"
+   ],
+   [
+    "Quality (scrap rate)",
+    "97.9 % (1.9 % scrap)",
+    "92.6 % (7.0 % scrap)"
+   ],
+   [
+    "Unplanned downtime",
+    "77 h",
+    "63 h, including all 10 breakdowns (5.3 h each)"
+   ],
+   [
+    "Plant OEE overall",
+    "74.1 % against a 75 % target",
+    "Closing these windows alone is worth +2.4 points"
+   ]
+  ],
+  "y": 1.45,
+  "height": 4.6
+ },
+ {
+  "kind": "table",
+  "title": "One data journey, one asset key",
+  "data": [
+   [
+    "Stage",
+    "Databricks capability",
+    "What it does here"
+   ],
+   [
+    "1 Ingest",
+    "Lakeflow declarative pipeline + Auto Loader",
+    "1.9 M historian readings, SCADA states/alarms, ERP/MES orders and CMMS work orders; 9 quality rules drop bad sensor data and impossible counts"
+   ],
+   [
+    "2 Govern",
+    "Unity Catalog",
+    "IT / OT / gold domains with owner + steward tags, certified gold OEE, operator PII masked, lineage from raw files to OEE"
+   ],
+   [
+    "3 Predict + explain",
+    "MLflow model in UC + ai_query",
+    "Next-shift OEE-at-risk model with SHAP drivers; LLM drafts root cause + work order grounded on past repairs"
+   ],
+   [
+    "4 Serve + act",
+    "Lakebase (Postgres)",
+    "Sub-millisecond at-risk queue for the app; supervisor actions written back and synced to the lakehouse"
+   ],
+   [
+    "5 Ask",
+    "Genie + Agent Bricks Supervisor + Knowledge Assistant",
+    "Plain-English OEE analytics, risk, and repair manuals in one agent; evaluated with MLflow LLM judges"
+   ],
+   [
+    "6 Use",
+    "Databricks App",
+    "OEE board, at-risk queue, Acknowledge / Create work order, agent chat with human approval for actions"
+   ]
+  ],
+  "y": 1.45,
+  "height": 4.9
+ },
+ {
+  "kind": "basic",
+  "title": "On the floor: CNC-02 before failure",
+  "subtitle": "What the supervisor sees and does",
+  "body": "Signal: vibration 6.0 mm/s, +1.8 vs the last 6 shifts; 8 alarms; OEE down to 52 %\nPrediction: 99.8 % risk of next-shift OEE < 65 %; top driver is the vibration trend\nCause: likely spindle-bearing wear from lubrication starvation (4 similar past repairs)\nPlan: procedure MM-CNC-01-R7 (6 h), pre-stage bearing set SP-BRG-7014-P4, P1 at next planned stop\nAction: agent raises the request only after the user approves; supervisor approves the work order\nLoop closed in Unity Catalog: first action 1.5 min after the alert"
+ },
+ {
+  "kind": "table",
+  "title": "Proof: model and agent, measured",
+  "data": [
+   [
+    "Held-out last 8 days (276 asset-shifts)",
+    "At-risk model",
+    "Today's rule: flag if this shift's OEE < 65 %"
+   ],
+   [
+    "Precision (alerts that were right)",
+    "0.82",
+    "0.67"
+   ],
+   [
+    "Recall (at-risk shifts caught)",
+    "0.72",
+    "0.65"
+   ],
+   [
+    "AUC",
+    "0.87",
+    "—"
+   ],
+   [
+    "Warning before the 3 breakdowns in the window",
+    "57–86 h",
+    "after OEE has already dropped"
+   ],
+   [
+    "Agent eval: 10 plant questions, MLflow judges",
+    "Routing 1.0 · relevance 1.0 · safety 1.0",
+    "Plant rules 0.9 · correctness 0.8"
+   ]
+  ],
+  "y": 1.45,
+  "height": 3.9
+ },
+ {
+  "kind": "table",
+  "title": "Business value per 12-asset line, per year",
+  "data": [
+   [
+    "Lever",
+    "Low",
+    "Base",
+    "High",
+    "Key assumption (to replace with plant data)"
+   ],
+   [
+    "OEE points",
+    "+0.7",
+    "+1.0",
+    "+1.7",
+    "72 % of windows caught; 60 % of each window's loss recovered"
+   ],
+   [
+    "Unplanned hours avoided",
+    "350",
+    "500",
+    "500",
+    "breakdown hours × detection rate"
+   ],
+   [
+    "Downtime value",
+    "$0.6 M",
+    "$1.75 M",
+    "$3.5 M",
+    "$2.5k–$10k per unplanned hour on a constrained cell; planned hour = 30 %"
+   ],
+   [
+    "Scrap avoided (parts)",
+    "1,700",
+    "2,500",
+    "4,200",
+    "excess scrap in degradation windows"
+   ],
+   [
+    "Scrap value",
+    "$0.35 M",
+    "$1.0 M",
+    "$4.2 M",
+    "$200–$1,000 per in-process blade / vane part"
+   ],
+   [
+    "Total",
+    "≈ $1.0 M",
+    "≈ $2.75 M",
+    "≈ $7.7 M",
+    "excludes secondary damage, throughput, MTTR gains"
+   ]
+  ],
+  "y": 1.5,
+  "height": 4.6
+ },
+ {
+  "kind": "twocol",
+  "title": "Trust by design",
+  "headers": [
+   "Governed data",
+   "Safe AI and actions"
+  ],
+  "bodies": [
+   "IT, OT and gold domains, each with an owner and a steward\nOperator names and badges masked outside the HR group\nLineage from historian file to the OEE number\nApp identity limited to the 7 tables, 2 functions, 2 endpoints and 1 Genie space it needs",
+   "Model registered with a signature; drivers shown per asset\nAnswers grounded on plant data and manuals, procedure IDs cited\nAgent actions need two human approvals: tool call, then work order\nEvery question and action logged and synced back for audit"
+  ]
+ },
+ {
+  "kind": "table",
+  "title": "Roadmap and the ask",
+  "data": [
+   [
+    "Phase",
+    "Scope",
+    "Exit criterion"
+   ],
+   [
+    "Days 0–30 · Connect",
+    "One line: real historian tags + SCADA states, ERP/MES orders, CMMS work orders; asset key map",
+    "Daily OEE per asset and shift matches the plant's report within ±1 point"
+   ],
+   [
+    "Days 31–60 · Predict",
+    "Retrain on 6–12 months of history; add manuals; pilot app with one shift team",
+    "Precision ≥ 0.75 on held-out weeks; supervisors act on alerts within 1 hour (SOP)"
+   ],
+   [
+    "Days 61–90 · Prove",
+    "Run in production on the line; track planned vs unplanned stops",
+    "Measured OEE and downtime change vs baseline; go / no-go for plant rollout"
+   ],
+   [
+    "Ask",
+    "Sponsor: approve a 90-day pilot on one line. Domain owner: name a pilot shift team and the reliability engineer",
+    "Plant data access (historian, MES, CMMS) granted in week 1"
+   ]
+  ],
+  "y": 1.45,
+  "height": 4.6
+ },
+ {
+  "kind": "table",
+  "title": "Appendix: evidence map",
+  "data": [
+   [
+    "Claim",
+    "Text evidence (GitHub repo)"
+   ],
+   [
+    "Pipeline ran; quality rules caught the bad data",
+    "evidence/01, evidence/02 (event-log expectations)"
+   ],
+   [
+    "Masking, tags, lineage",
+    "evidence/03"
+   ],
+   [
+    "Model metrics, warning lead time, SHAP drivers",
+    "evidence/04, evidence/05"
+   ],
+   [
+    "Lakebase serving, reverse sync, 0.02 ms lookup",
+    "evidence/06, evidence/07"
+   ],
+   [
+    "Genie, Knowledge Assistant, Supervisor answers; LLM-judge scores",
+    "evidence/08, evidence/09"
+   ],
+   [
+    "App grants, closed-loop action, 1.5 min KPI",
+    "evidence/10, evidence/11"
+   ],
+   [
+    "Value math and assumptions",
+    "docs/deck/VALUE_MODEL.md"
+   ]
+  ],
+  "y": 1.45,
+  "height": 4.4
+ },
+ {
+  "kind": "closing"
+ }
+]

@@ -84,6 +84,12 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
   `databricks bundle run plant_oee_build --only genai_root_cause,refresh_lakebase_sync`.
 - Evidence: `python3 ops/stage6_evidence.py`.
 
+## Business deck
+- Google Slides (2025 corporate template): https://docs.google.com/presentation/d/1zPsEygdI09wXjB8k0mVahlBSJXnItOMG5RB65P1vNqk/edit
+- Submission PDF: `docs/FEBAR_business_deck.pdf`. Source: `docs/deck/deck_spec.json` → `python3 docs/deck/build_deck.py
+  docs/deck/deck_spec.json "<title>" docs/FEBAR_business_deck.pdf` (creates a NEW presentation; trash the old one).
+- Every number traces to `docs/deck/VALUE_MODEL.md` (measured vs labelled assumptions A1–A6).
+
 ## Notes / issues encountered
 - Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
 - **Workspace is SERVERLESS-ONLY** ("Only serverless compute is supported"): no job/ML clusters. ML notebook pip-installs
