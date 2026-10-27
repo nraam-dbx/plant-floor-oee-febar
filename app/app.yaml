@@ -1,0 +1,8 @@
+command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+env:
+  - name: LAKEBASE_ENDPOINT
+    value: projects/plant-floor-oee-febar/branches/production/endpoints/primary
+  - name: LAKEBASE_DATABASE
+    value: databricks_postgres
+  - name: SUPERVISOR_ENDPOINT
+    valueFrom: supervisor_endpoint     # resolves to the endpoint name declared in resources/app.yml

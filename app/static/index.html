@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plant-floor OEE</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#5f6b7a; --line:#e3e7ec; --bad:#c62828; --warn:#b26a00; --good:#2e7d32; --accent:#1b3a57; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--accent); color:#fff; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+  header h1 { font-size:17px; margin:0; font-weight:600; }
+  header span { font-size:12px; opacity:.8; }
+  main { display:grid; grid-template-columns: minmax(0,1.6fr) minmax(340px,1fr); gap:16px; padding:16px 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:16px; }
+  h2 { font-size:14px; margin:0 0 10px; color:var(--accent); text-transform:uppercase; letter-spacing:.04em; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .kpi b { display:block; font-size:24px; font-weight:600; }
+  .kpi small { color:var(--muted); }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); }
+  th { font-size:12px; color:var(--muted); font-weight:600; }
+  td.num, th.num { text-align:right; }
+  .lo { color:var(--bad); font-weight:600; } .mid { color:var(--warn); } .hi { color:var(--good); }
+  .risk { border-left:4px solid var(--bad); padding:10px 12px; margin:10px 0; background:#fff7f7; border-radius:4px; }
+  .risk.ok { border-left-color:var(--line); background:#fafbfc; }
+  .risk h3 { margin:0 0 4px; font-size:15px; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px; background:#eef1f4; margin-right:4px; }
+  .pill.p1 { background:var(--bad); color:#fff; }
+  .muted { color:var(--muted); font-size:12px; }
+  pre.tasks { white-space:pre-wrap; font:12px/1.4 inherit; background:#fff; border:1px solid var(--line); padding:6px 8px; border-radius:4px; max-height:140px; overflow:auto; }
+  button { font:inherit; padding:5px 10px; border-radius:5px; border:1px solid #b9c2cc; background:#fff; cursor:pointer; margin:4px 4px 0 0; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button:disabled { opacity:.5; cursor:default; }
+  #chatlog { height:360px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:8px; background:#fafbfc; }
+  .msg { margin:6px 0; white-space:pre-wrap; } .msg.u { font-weight:600; } .msg.a { border-left:3px solid var(--accent); padding-left:8px; }
+  .chatbar { display:flex; gap:6px; margin-top:8px; } .chatbar input { flex:1; padding:7px 9px; border:1px solid #b9c2cc; border-radius:5px; font:inherit; }
+  .chips button { font-size:12px; }
+</style>
+</head>
+<body>
+<header><h1>Plant-floor OEE · Turbine Components Plant PLT1</h1><span id="through"></span></header>
+<main>
+  <section>
+    <div class="kpis">
+      <div class="kpi"><small>Plant OEE (7 days)</small><b id="k_oee">–</b><small>target 75 %</small></div>
+      <div class="kpi"><small>Assets at risk next shift</small><b id="k_risk">–</b><small>risk ≥ 0.5</small></div>
+      <div class="kpi"><small>Unplanned downtime (7 days)</small><b id="k_down">–</b><small>hours</small></div>
+      <div class="kpi"><small>Work orders awaiting approval</small><b id="k_wo">–</b><small>requested</small></div>
+    </div>
+    <div class="card" style="margin-top:16px"><h2>At-risk queue · next shift</h2><div id="queue"></div></div>
+    <div class="card"><h2>OEE by asset · last 7 days</h2><table id="oee"></table></div>
+    <div class="card"><h2>Work-order requests</h2><table id="wos"></table></div>
+  </section>
+  <section>
+    <div class="card"><h2>Ask the Plant-Floor OEE Agent</h2>
+      <div class="chips">
+        <button onclick="ask('Which assets are at risk next shift and why?')">At risk & why</button>
+        <button onclick="ask('What should I do about CNC-02 before next shift?')">What to do about CNC-02</button>
+        <button onclick="ask('Which work center had the lowest OEE last week and what was the biggest loss?')">Worst work center</button>
+        <button onclick="ask('Raise a work order request for CNC-02.')">Raise WO for CNC-02</button>
+      </div>
+      <div id="chatlog"></div>
+      <div class="chatbar"><input id="chatin" placeholder="Ask about OEE, downtime, risk or repair procedures…" onkeydown="if(event.key==='Enter')ask()"><button class="primary" onclick="ask()">Ask</button></div>
+      <div class="muted" id="chatmeta"></div>
+    </div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cls = v => v < 65 ? 'lo' : v < 75 ? 'mid' : 'hi';
+async function api(path, opts={}) {
+  const r = await fetch(path, {headers:{'Content-Type':'application/json'}, ...opts});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || r.statusText);
+  return j;
+}
+async function loadSummary() {
+  const s = await api('/api/summary');
+  $('k_oee').textContent = s.plant_oee_pct + ' %'; $('k_oee').className = cls(s.plant_oee_pct);
+  $('k_risk').textContent = s.at_risk; $('k_down').textContent = s.unplanned_hours; $('k_wo').textContent = s.pending_work_orders;
+  $('through').textContent = 'data through ' + s.through;
+}
+async function loadOee() {
+  const rows = await api('/api/oee');
+  $('oee').innerHTML = '<tr><th>Asset</th><th>Work center</th><th class=num>Avail %</th><th class=num>Perf %</th><th class=num>Quality %</th><th class=num>OEE %</th><th class=num>Unplanned h</th></tr>' +
+    rows.map(r => `<tr><td>${esc(r.asset_id)}</td><td>${esc(r.work_center_name)}</td><td class=num>${r.availability}</td><td class=num>${r.performance}</td><td class=num>${r.quality}</td><td class="num ${cls(r.oee)}">${r.oee}</td><td class=num>${r.unplanned_hours}</td></tr>`).join('');
+}
+async function loadQueue() {
+  const rows = await api('/api/queue');
+  const risky = rows.filter(r => r.at_risk), rest = rows.filter(r => !r.at_risk);
+  $('queue').innerHTML = (risky.length ? risky.map(r => `
+    <div class="risk">
+      <h3>${esc(r.asset_id)} · ${esc(r.asset_name)} <span class="pill p1">${esc(r.wo_priority || '')}</span><span class="pill">risk ${(r.risk_score*100).toFixed(1)} %</span><span class="pill">${esc(r.urgency || '')}</span></h3>
+      <div class="muted">scored on shift ${esc(r.scored_shift_id)} · current OEE ${(r.current_oee*100).toFixed(1)} % · vibration ${r.vibration_mm_s} mm/s (${r.vibration_trend >= 0 ? '+' : ''}${r.vibration_trend} vs prior 6 shifts)</div>
+      <p><b>Model drivers:</b> ${esc(r.top_drivers)}</p>
+      <p><b>Probable cause:</b> ${esc(r.probable_cause)} <span class="muted">(${esc(r.confidence)} confidence)</span></p>
+      <p><b>Recommended:</b> ${esc(r.recommended_action)}</p>
+      <details><summary>AI-drafted work order · ${r.wo_estimated_hours} h</summary><p>${esc(r.wo_problem_description)}</p><pre class="tasks">${esc(r.wo_planned_tasks)}</pre></details>
+      <div class="muted">${r.last_action ? 'Last action: <b>' + esc(r.last_action) + '</b> by ' + esc(r.last_actor) + ' at ' + esc(r.last_acted_at) : '<b>Not yet acknowledged</b> — SOP-PLT-001: acknowledge within 1 h of shift handover'}</div>
+      <button onclick="act('${r.asset_id}','ACKNOWLEDGE')">Acknowledge</button>
+      <button class="primary" onclick="act('${r.asset_id}','CREATE_WORK_ORDER')">Create work order</button>
+      <button onclick="act('${r.asset_id}','DEFER')">Defer…</button>
+      <button onclick="act('${r.asset_id}','DISMISS')">Dismiss…</button>
+    </div>`).join('') : '<p>No assets at risk next shift.</p>') +
+    `<p class="muted">Healthy next shift: ${rest.map(r => esc(r.asset_id) + ' ' + (r.risk_score*100).toFixed(1) + '%').join(' · ')}</p>`;
+}
+async function loadWos() {
+  const rows = await api('/api/work-orders');
+  $('wos').innerHTML = '<tr><th>#</th><th>Asset</th><th>Priority</th><th>Status</th><th>Source</th><th>Requested by</th><th>When</th><th></th></tr>' +
+    (rows.length ? rows.map(r => `<tr><td>${r.request_id}</td><td>${esc(r.asset_id)}</td><td>${esc(r.priority)}</td><td>${esc(r.status)}</td><td>${esc(r.source)}</td><td>${esc(r.requested_by)}</td><td>${esc(String(r.requested_at).slice(0,16))}</td><td>${r.status==='REQUESTED' ? `<button onclick="approve(${r.request_id})">Approve</button>` : ''}</td></tr>`).join('') : '<tr><td colspan=8 class=muted>none yet</td></tr>');
+}
+async function act(asset, action) {
+  let note = '';
+  if (action === 'DEFER' || action === 'DISMISS') { note = prompt(`Reason to ${action.toLowerCase()} ${asset} (required by SOP-PLT-001):`) || ''; if (!note.trim()) return; }
+  try { await api('/api/actions', {method:'POST', body: JSON.stringify({asset_id: asset, action, note})}); refresh(); }
+  catch (e) { alert(e.message); }
+}
+async function approve(id) { try { await api(`/api/work-orders/${id}/approve`, {method:'POST'}); refresh(); } catch (e) { alert(e.message); } }
+const history = [];
+let pending = null;
+function showAnswer(r, msg) {
+  const log = $('chatlog');
+  const answer = r.answer ? `<div class="msg a">${esc(r.answer)}</div>` : '';
+  if ($('pending')) $('pending').outerHTML = answer; else log.innerHTML += answer;
+  if (r.approval) {
+    pending = r;
+    log.innerHTML += `<div class="msg a" id="approval"><b>The agent wants to run ${esc(r.approval.tool)}</b> (${esc(r.approval.server)}) with ${esc(r.approval.arguments)}.<br>
+      This raises a work-order REQUEST that still needs supervisor approval below.<br>
+      <button class="primary" onclick="decide(true)">Approve tool call</button><button onclick="decide(false)">Reject</button></div>`;
+  } else if (msg) {
+    history.push({role:'user', content: msg}, {role:'assistant', content: r.answer});
+  }
+  $('chatmeta').textContent = `tools: ${r.tools.join(' → ') || 'none'} · ${r.seconds}s`;
+  log.scrollTop = log.scrollHeight;
+}
+async function ask(text) {
+  const msg = text || $('chatin').value.trim(); if (!msg) return;
+  $('chatin').value = ''; const log = $('chatlog');
+  log.innerHTML += `<div class="msg u">${esc(msg)}</div><div class="msg a" id="pending">thinking… (the agent may call Genie, the risk model and the manuals)</div>`;
+  log.scrollTop = log.scrollHeight;
+  try { showAnswer(await api('/api/chat', {method:'POST', body: JSON.stringify({message: msg, history})}), msg); refresh(); }
+  catch (e) { $('pending').outerHTML = `<div class="msg a">Error: ${esc(e.message)}</div>`; }
+}
+async function decide(approve) {
+  const p = pending; pending = null; $('approval').remove();
+  $('chatlog').innerHTML += `<div class="msg u">${approve ? 'Approved' : 'Rejected'} ${esc(p.approval.tool)}</div><div class="msg a" id="pending">…</div>`;
+  try { showAnswer(await api('/api/chat', {method:'POST', body: JSON.stringify({pending: p.pending, approval_id: p.approval.id, approve})})); refresh(); }
+  catch (e) { $('pending').outerHTML = `<div class="msg a">Error: ${esc(e.message)}</div>`; }
+}
+function refresh() { loadSummary(); loadQueue(); loadWos(); }
+refresh(); loadOee();
+</script>
+</body>
+</html>

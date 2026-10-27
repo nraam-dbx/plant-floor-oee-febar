@@ -14,6 +14,7 @@
 
 dbutils.widgets.text("endpoint", "projects/plant-floor-oee-febar/branches/production/endpoints/primary")
 dbutils.widgets.text("smoke_test", "true")
+dbutils.widgets.text("app_role", "")   # app service principal client id -> least-privilege grants (03_app_grants.sql)
 ENDPOINT = dbutils.widgets.get("endpoint")
 
 import os, psycopg
@@ -48,6 +49,17 @@ q("""SELECT c.relname AS table_name, CASE c.relreplident WHEN 'f' THEN 'FULL' WH
      FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'ops' AND c.relkind = 'r' ORDER BY 1""")
 q("""SELECT table_schema, table_name, (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from %I.%I', table_schema, table_name), false, true, '')))[1]::text::int AS row_count
      FROM information_schema.tables WHERE table_schema IN ('ops', 'plant_floor_oee_febar') ORDER BY 1, 2""")
+
+# COMMAND ----------
+
+APP_ROLE = dbutils.widgets.get("app_role").strip()
+if APP_ROLE:
+    grants = open("/Workspace" + ddl_path.replace("01_ops_schema.sql", "03_app_grants.sql")).read().replace("{app_role}", APP_ROLE)
+    q(grants)
+    q("""SELECT table_schema, table_name, string_agg(privilege_type, ',' ORDER BY privilege_type) AS privileges
+         FROM information_schema.role_table_grants WHERE grantee = %s GROUP BY 1, 2 ORDER BY 1, 2""", (APP_ROLE,))
+    q("""SELECT table_name, column_name, privilege_type FROM information_schema.column_privileges
+         WHERE grantee = %s AND privilege_type = 'UPDATE' ORDER BY 1, 2""", (APP_ROLE,))
 
 # COMMAND ----------
 

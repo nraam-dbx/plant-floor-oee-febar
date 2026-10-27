@@ -74,6 +74,16 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - `create_work_order` is NOT an agent tool yet: UC functions can't write Postgres. Plan: expose it from the Stage-6 App as an
   `app` tool; until then the agent drafts and a person creates the WO in the app (human-in-the-loop).
 
+## App (Stage 6)
+- `app/` FastAPI + static UI; bundle `resources/app.yml` (resources = least-privilege SP grants). Deploy:
+  `databricks bundle deploy && databricks bundle run plant_floor_oee_app`, then once `./ops/app_post_deploy.sh`.
+- Reads Lakebase synced tables, writes `ops.*` (user from X-Forwarded-Email); `/api/chat` → Supervisor; `/mcp` exposes
+  `request_work_order` (Supervisor tool type `app`). Agent Bricks pauses app/MCP tool calls with `mcp_approval_request`;
+  the app relays Approve/Reject as `mcp_approval_response` (both halves of the transcript are round-tripped by the UI).
+- KPI `gold_alert_response` measures from `gold_at_risk_queue.published_at` (demo replays history). Republish before a demo:
+  `databricks bundle run plant_oee_build --only genai_root_cause,refresh_lakebase_sync`.
+- Evidence: `python3 ops/stage6_evidence.py`.
+
 ## Notes / issues encountered
 - Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
 - **Workspace is SERVERLESS-ONLY** ("Only serverless compute is supported"): no job/ML clusters. ML notebook pip-installs
@@ -98,6 +108,8 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - MLflow Guidelines judges see only question + answer: rules must be checkable from the answer alone.
 - `dbutils.notebook.exit` in a cell drops that cell's printed output from the run export → exit in its own cell.
 - CLI OAuth refresh token expires after ~a week idle → `databricks auth login --profile fevm-nraameast1`.
+- Supervisor → app MCP got 401 until the app SP had CAN_USE on its own app. Complex agent turns take ~100 s.
+- Flow-style YAML needs `${var.x}` quoted (`{id: "${var.warehouse_id}"}`).
 - Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
 - `plant_hr_admins` is a WORKSPACE group (id 2126379324037637); mask uses `is_member()` because there is no account-console access
   on the FEVM account, so `is_account_group_member()` can't see it. Unmask path (adding a member) not yet verified.

@@ -1,0 +1,40 @@
+# Stage 6 · Databricks App. Every resource below is a least-privilege grant to the app's service principal:
+# exactly what the UI and the Supervisor's tools (which run as the caller) need, nothing broader.
+resources:
+  apps:
+    plant_floor_oee_app:
+      name: plant-floor-oee-febar
+      description: Plant-floor OEE board, at-risk queue with supervisor actions (Lakebase), and the Plant-Floor OEE Agent chat.
+      source_code_path: ../app
+      resources:
+        - name: lakebase
+          postgres:
+            branch: projects/plant-floor-oee-febar/branches/production
+            database: projects/plant-floor-oee-febar/branches/production/databases/databricks-postgres
+            permission: CAN_CONNECT_AND_CREATE
+        - name: supervisor_endpoint
+          serving_endpoint: {name: mas-9960e05a-endpoint, permission: CAN_QUERY}
+        - name: knowledge_assistant_endpoint
+          serving_endpoint: {name: ka-fedb6b90-endpoint, permission: CAN_QUERY}
+        - name: genie_space
+          genie_space: {name: "Plant OEE Analyst", space_id: 01f1d23e18d51bf08e7219f0e2204db1, permission: CAN_RUN}
+        - name: sql_warehouse
+          sql_warehouse: {id: "${var.warehouse_id}", permission: CAN_USE}
+        - name: fn_get_asset_risk
+          uc_securable: {securable_type: FUNCTION, securable_full_name: "${var.catalog}.${var.schema}.get_asset_risk", permission: EXECUTE}
+        - name: fn_get_work_order_draft
+          uc_securable: {securable_type: FUNCTION, securable_full_name: "${var.catalog}.${var.schema}.get_work_order_draft", permission: EXECUTE}
+        - name: tbl_at_risk_queue
+          uc_securable: {securable_type: TABLE, securable_full_name: "${var.catalog}.${var.schema}.gold_at_risk_queue", permission: SELECT}
+        - name: tbl_oee_shift
+          uc_securable: {securable_type: TABLE, securable_full_name: "${var.catalog}.${var.schema}.gold_oee_shift", permission: SELECT}
+        - name: tbl_downtime_events
+          uc_securable: {securable_type: TABLE, securable_full_name: "${var.catalog}.${var.schema}.gold_downtime_events", permission: SELECT}
+        - name: tbl_asset_reliability
+          uc_securable: {securable_type: TABLE, securable_full_name: "${var.catalog}.${var.schema}.gold_asset_reliability", permission: SELECT}
+        - name: tbl_alert_response
+          uc_securable: {securable_type: TABLE, securable_full_name: "${var.catalog}.${var.schema}.gold_alert_response", permission: SELECT}
+        - name: tbl_assets
+          uc_securable: {securable_type: TABLE, securable_full_name: "${var.catalog}.${var.schema}.silver_assets", permission: SELECT}
+        - name: tbl_work_orders
+          uc_securable: {securable_type: TABLE, securable_full_name: "${var.catalog}.${var.schema}.silver_work_orders", permission: SELECT}

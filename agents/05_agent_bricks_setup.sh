@@ -43,6 +43,7 @@ tool get_asset_risk "$(j --arg f "$F.get_asset_risk" '{tool_type:"uc_function", 
   description:"Next-shift OEE risk per asset (ML model) with top drivers; which assets are at risk."}')"
 tool get_work_order_draft "$(j --arg f "$F.get_work_order_draft" '{tool_type:"uc_function", uc_function:{name:$f},
   description:"AI-drafted probable cause and work order for an at-risk asset; the draft must be confirmed by a person in the app."}')"
+tool request_work_order "$(j '{tool_type:"app", app:{name:"plant-floor-oee-febar"}, description:"Plant-floor app actions over MCP: request_work_order(asset_id, reason) raises a work-order REQUEST from an at-risk asset AI draft; a supervisor must approve it in the app. Use only when the user explicitly asks to raise or request a work order."}')"
 tool plant_maintenance_manuals "$(j --arg id "$KA_ID" '{tool_type:"knowledge_assistant", knowledge_assistant:{knowledge_assistant_id:$id},
   description:"How to diagnose and repair plant equipment (CNC spindles, grinders, coating cells, welders, CMMs): thresholds, procedure IDs, part numbers, repair hours; plant LOTO safety and OEE escalation rules (SOP-PLT-001)."}')"
 databricks supervisor-agents get-supervisor-agent "$SUPERVISOR_AGENT" -p "$PROFILE" -o json | jq -r '"supervisor endpoint: " + .endpoint_name'
