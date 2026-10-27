@@ -49,3 +49,12 @@ resources:
             warehouse_id: ${var.warehouse_id}
             file:
               path: ../lakebase/02_reverse_sync_views.sql
+
+    plant_oee_agent_eval:
+      name: plant_oee_agent_eval
+      description: Evaluate the Plant-Floor OEE Supervisor agent with MLflow LLM judges + a tool-routing scorer.
+      tasks:
+        - task_key: eval_supervisor
+          max_retries: 0
+          notebook_task:
+            notebook_path: ../notebooks/20_eval_supervisor.py

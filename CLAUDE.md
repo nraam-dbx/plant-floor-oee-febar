@@ -64,6 +64,16 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
   (`lakebase/02_reverse_sync_views.sql`). Smoke-test rows use `acted_by='setup-smoke-test'` and are excluded from KPIs.
 - Evidence: `python3 ops/stage4_evidence.py`.
 
+## Genie + agents (Stage 5)
+- Manuals: `agents/manuals/*.md` (synthetic) → volume `manuals`. UC tools: `agents/02_uc_functions.sql` (`get_asset_risk`,
+  `get_work_order_draft`). Genie space as code: `python3 agents/03_genie_space.py` (id in config.env `GENIE_SPACE_ID`).
+- Agent Bricks: `agents/05_agent_bricks_setup.sh` → Knowledge Assistant `ka-fedb6b90-endpoint`, Supervisor
+  "Plant-Floor OEE Agent" `mas-9960e05a-endpoint` (tools: plant_oee_analyst, get_asset_risk, get_work_order_draft,
+  plant_maintenance_manuals). Instructions: `agents/04_supervisor_instructions.md`.
+- Eval: job `plant_oee_agent_eval` (`notebooks/20_eval_supervisor.py`). Evidence: `python3 ops/stage5_evidence.py`.
+- `create_work_order` is NOT an agent tool yet: UC functions can't write Postgres. Plan: expose it from the Stage-6 App as an
+  `app` tool; until then the agent drafts and a person creates the WO in the app (human-in-the-loop).
+
 ## Notes / issues encountered
 - Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
 - **Workspace is SERVERLESS-ONLY** ("Only serverless compute is supported"): no job/ML clusters. ML notebook pip-installs
@@ -82,6 +92,12 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
   The job still reported SUCCESS after the crash → notebooks end with an assert + `dbutils.notebook.exit`.
 - `databricks jobs run-now --json` needs `job_id` inside the JSON (positional arg + --json errors); don't discard its output.
 - PyPI is blocked on this laptop → anything needing pip runs as a Databricks task.
+- Knowledge Assistant took ~45 min CREATING (internal vector index build) on first create; endpoint is READY earlier but
+  errors "Vector index ... is not ready" until then. Supervisor tool JSON: `tool_type` + `genie_space.id` /
+  `uc_function.name` / `knowledge_assistant.knowledge_assistant_id`; with --json only PARENT/TOOL_ID positional.
+- MLflow Guidelines judges see only question + answer: rules must be checkable from the answer alone.
+- `dbutils.notebook.exit` in a cell drops that cell's printed output from the run export → exit in its own cell.
+- CLI OAuth refresh token expires after ~a week idle → `databricks auth login --profile fevm-nraameast1`.
 - Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
 - `plant_hr_admins` is a WORKSPACE group (id 2126379324037637); mask uses `is_member()` because there is no account-console access
   on the FEVM account, so `is_account_group_member()` can't see it. Unmask path (adding a member) not yet verified.
