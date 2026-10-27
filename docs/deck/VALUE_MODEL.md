@@ -13,7 +13,7 @@ Every number is either **measured** in the demo (synthetic data, 12 assets, 28 d
 | Major (run-to-failure) stops | 10, avg 5.3 h, 53.2 h total | `gold_downtime_events.is_major_failure` |
 | Model on held-out 8 days | precision 0.82, recall 0.72 (today's rule: 0.67 / 0.65) | `evidence/04` |
 | Warning lead time before real failures | 57 – 86 h | `evidence/04` |
-| Alert → first supervisor action | 1.5 min (app) | `gold_alert_response`, `evidence/10` |
+| Alert → first supervisor action | 2.1 min (app) | `gold_alert_response`, `evidence/10` |
 
 ## Assumptions
 | ID | Assumption | Base | Range |

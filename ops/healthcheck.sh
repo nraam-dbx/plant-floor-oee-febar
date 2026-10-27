@@ -23,6 +23,11 @@ echo "[DATA] schema populated (customize these checks per project)"
 n=$(sqlq "SELECT count(*) FROM information_schema.tables WHERE table_schema='$SCHEMA'")
 [ "${n:-0}" -ge 1 ] 2>/dev/null && ok "tables in $SCHEMA: $n" || bad "no tables found in $CATALOG.$SCHEMA"
 
+n=$(sqlq "SELECT count(*) FROM gold_at_risk_queue WHERE at_risk")
+[ "${n:-0}" -ge 1 ] 2>/dev/null && ok "at-risk assets in queue: $n" || bad "no at-risk asset in gold_at_risk_queue (run the build job)"
+n=$(sqlq "SELECT count(*) FROM gold_oee_shift")
+[ "${n:-0}" -ge 1000 ] 2>/dev/null && ok "gold_oee_shift rows: $n" || bad "gold_oee_shift rows: $n"
+
 echo "[WAREHOUSE]"
 ws=$(databricks warehouses get "$WAREHOUSE_ID" -p "$PROFILE" -o json 2>/dev/null | python3 -c "import json,sys;print(json.load(sys.stdin).get('state','?'))" 2>/dev/null)
 { [ "$ws" = "RUNNING" ] || [ "$ws" = "STARTING" ]; } && ok "warehouse: $ws" || bad "warehouse: $ws (run manage.sh start)"
@@ -36,6 +41,12 @@ if [ -n "${SUPERVISOR_ENDPOINT:-}" ]; then
   s=$(databricks serving-endpoints get "$SUPERVISOR_ENDPOINT" -p "$PROFILE" -o json 2>/dev/null | python3 -c "import json,sys;print(json.load(sys.stdin).get('state',{}).get('ready','?'))" 2>/dev/null)
   [ "$s" = "READY" ] && ok "endpoint: $s" || bad "endpoint: $s"
 fi
+
+echo "[APP → LAKEBASE]"
+url=$(databricks apps get "$APP_NAME" -p "$PROFILE" -o json 2>/dev/null | python3 -c "import json,sys;print(json.load(sys.stdin).get('url',''))" 2>/dev/null)
+tok=$(databricks auth token -p "$PROFILE" -o json 2>/dev/null | python3 -c "import json,sys;print(json.load(sys.stdin)['access_token'])" 2>/dev/null)
+h=$(curl -s -m 60 -H "Authorization: Bearer $tok" "$url/api/health" 2>/dev/null)
+echo "$h" | grep -q '"lakebase":true' && ok "app health: $h" || bad "app health: ${h:-no response} (Lakebase may be waking up — retry)"
 
 echo "-----------------------------------------------"
 echo "RESULT: $pass passed, $fail failed"

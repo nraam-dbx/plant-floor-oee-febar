@@ -1,6 +1,6 @@
 # Evidence 10 — Databricks App: plant-floor OEE board, actions, agent chat (live)
 
-Generated 2026-10-27 17:05 by `ops/stage6_evidence.py`. App `plant-floor-oee-febar` (compute ACTIVE, app RUNNING) — https://plant-floor-oee-febar-7474650251978703.aws.databricksapps.com
+Generated 2026-10-27 17:51 by `ops/stage6_evidence.py`. App `plant-floor-oee-febar` (compute ACTIVE, app RUNNING) — https://plant-floor-oee-febar-7474650251978703.aws.databricksapps.com
 
 ## Least-privilege grants to the app's service principal `29d0fd28-7036-4e25-9405-51d06b07d682` (resources/app.yml)
 
@@ -29,18 +29,25 @@ Postgres-side grants for the same role (lakebase/03_app_grants.sql): SELECT on t
 ```
 GET /api/health   {"lakebase": true, "supervisor": "mas-9960e05a-endpoint"}
 GET /api/summary  {"plant_oee_pct": 73.7, "unplanned_hours": 39.5, "scrap_units": 493, "through": "2026-10-18", "at_risk": 1, "pending_work_orders": 0}
-GET /api/queue    top row: {"asset_id": "CNC-02", "risk_score": 0.9981, "at_risk": true, "wo_priority": "P1", "urgency": "NEXT_PLANNED_STOP", "last_action": "ACKNOWLEDGE", "last_actor": "n.raam@databricks.com"}
+GET /api/queue    top row: {"asset_id": "CNC-02", "risk_score": 0.9981, "at_risk": true, "wo_priority": "P1", "urgency": "IMMEDIATE", "last_action": "ACKNOWLEDGE", "last_actor": "n.raam@databricks.com"}
 GET /api/work-orders  [{"request_id": 1, "asset_id": "CNC-02", "priority": "P1", "status": "APPROVED", "source": "AGENT", "requested_by": "supervisor-agent"}]
 ```
 
 ## Agent chat through the app — "Which work center had the lowest average OEE last week, and what was the biggest loss?"
 
-Tools: `plant_oee_analyst` · 99.1 s
+Tools: `plant_oee_analyst` · 38.2 s
 
 ```
-**Root Form Grinding (WC_GRND)** had the lowest average OEE last week at **70.1%**.
+**WC_GRND** (Grinding work center) had the lowest average OEE last week at **70.10%**.
 
-The biggest loss was **performance loss at 19.3%**, followed by availability loss at 10.2% and quality loss at 3.6%.
+The biggest loss was **performance loss at 19.34 percentage points**, followed by availability loss at 10.15 percentage points and quality loss at 3.57 percentage points.
+
+The grinding work center averaged:
+- **89.85%** availability (10.15 pp loss from ideal)
+- **80.66%** performance (19.34 pp loss from ideal)
+- **96.43%** quality (3.57 pp loss from ideal)
+
+Supporting metrics show an average of 11.1 minutes of unplanned downtime per shift, 35.1 minutes of setup time, 4.4 minor stops, and 3.6 units of scrap.
 ```
 
 ## Agent-raised work order with human approval (MCP tool on this app)
@@ -64,6 +71,7 @@ action_id | asset_id | action            | acted_by              | acted_at     
 2         | CNC-02   | ACKNOWLEDGE       | setup-smoke-test      | 2026-10-19T19:18:47.925Z | None                  | setup smoke test of the Lakebase write path                 
 3         | CNC-02   | CREATE_WORK_ORDER | supervisor-agent      | 2026-10-27T21:00:20.048Z | 1                     | spindle bearing replacement                                 
 4         | CNC-02   | ACKNOWLEDGE       | n.raam@databricks.com | 2026-10-27T21:04:35.488Z | None                  | Reviewed at handover; bearing replacement planned at next st
+5         | CNC-02   | ACKNOWLEDGE       | n.raam@databricks.com | 2026-10-27T21:44:52.431Z | None                  | Handover review after rebuild; bearing replacement planned a
 ```
 
 ## KPI — alert -> first action (gold_alert_response)
@@ -71,5 +79,5 @@ action_id | asset_id | action            | acted_by              | acted_at     
 ```
 asset_id | scored_shift_id | risk_score | at_risk | alert_raised_at          | first_action | first_actor           | first_action_at          | actions | minutes_to_first_action
 ---------+-----------------+------------+---------+--------------------------+--------------+-----------------------+--------------------------+---------+------------------------
-CNC-02   | 2026-10-18-C    | 0.9981     | true    | 2026-10-27T21:03:03.737Z | ACKNOWLEDGE  | n.raam@databricks.com | 2026-10-27T21:04:35.488Z | 1       | 1.5                    
+CNC-02   | 2026-10-18-C    | 0.9981     | true    | 2026-10-27T21:42:46.600Z | ACKNOWLEDGE  | n.raam@databricks.com | 2026-10-27T21:44:52.431Z | 1       | 2.1                    
 ```

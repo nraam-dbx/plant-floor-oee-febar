@@ -8,7 +8,7 @@
   "kind": "basic",
   "title": "The outcome, per line, per year",
   "subtitle": "One 12-asset line, base case (assumptions on slide 8)",
-  "body": "+1.0 OEE point (range +0.7 to +1.7) by fixing degradation before it becomes a breakdown\n~500 fewer unplanned downtime hours and ~2,500 fewer scrapped parts\n≈ $2.75M a year (range $1.0M to $7.7M), before secondary-damage and throughput upside\nFailures flagged 57–86 h ahead; the model beats today's rule (precision 0.82 vs 0.67)\nSupervisor acted 1.5 min after the alert, with procedure, parts and work order ready"
+  "body": "+1.0 OEE point (range +0.7 to +1.7) by fixing degradation before it becomes a breakdown\n~500 fewer unplanned downtime hours and ~2,500 fewer scrapped parts\n≈ $2.75M a year (range $1.0M to $7.7M), before secondary-damage and throughput upside\nFailures flagged 57–86 h ahead; the model beats today's rule (precision 0.82 vs 0.67)\nSupervisor acted 2.1 min after the alert, with procedure, parts and work order ready"
  },
  {
   "kind": "threecol",
@@ -79,7 +79,7 @@
    [
     "1 Ingest",
     "Lakeflow declarative pipeline + Auto Loader",
-    "1.9 M historian readings, SCADA states/alarms, ERP/MES orders and CMMS work orders; 9 quality rules drop bad sensor data and impossible counts"
+    "1.9 M historian readings, SCADA states/alarms, ERP/MES orders and CMMS work orders; 18 data-quality expectations drop bad sensor data, unmapped tags and impossible counts"
    ],
    [
     "2 Govern",
@@ -114,7 +114,7 @@
   "kind": "basic",
   "title": "On the floor: CNC-02 before failure",
   "subtitle": "What the supervisor sees and does",
-  "body": "Signal: vibration 6.0 mm/s, +1.8 vs the last 6 shifts; 8 alarms; OEE down to 52 %\nPrediction: 99.8 % risk of next-shift OEE < 65 %; top driver is the vibration trend\nCause: likely spindle-bearing wear from lubrication starvation (4 similar past repairs)\nPlan: procedure MM-CNC-01-R7 (6 h), pre-stage bearing set SP-BRG-7014-P4, P1 at next planned stop\nAction: agent raises the request only after the user approves; supervisor approves the work order\nLoop closed in Unity Catalog: first action 1.5 min after the alert"
+  "body": "Signal: vibration 6.0 mm/s, +1.8 vs the last 6 shifts; 8 alarms; OEE down to 52 %\nPrediction: 99.8 % risk of next-shift OEE < 65 %; top driver is the vibration trend\nCause: likely spindle-bearing wear from lubrication starvation (4 similar past repairs)\nPlan: procedure MM-CNC-01-R7 (6 h), pre-stage bearing set SP-BRG-7014-P4, P1 at next planned stop\nAction: agent raises the request only after the user approves; supervisor approves the work order\nLoop closed in Unity Catalog: first action 2.1 min after the alert"
  },
  {
   "kind": "table",
@@ -148,7 +148,7 @@
    [
     "Agent eval: 10 plant questions, MLflow judges",
     "Routing 1.0 · relevance 1.0 · safety 1.0",
-    "Plant rules 0.9 · correctness 0.8"
+    "Plant rules 1.0 · correctness 0.8"
    ]
   ],
   "y": 1.45,
@@ -285,7 +285,7 @@
     "evidence/08, evidence/09"
    ],
    [
-    "App grants, closed-loop action, 1.5 min KPI",
+    "App grants, closed-loop action, 2.1 min KPI",
     "evidence/10, evidence/11"
    ],
    [

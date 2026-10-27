@@ -1,6 +1,6 @@
 # Evidence 03 — Unity Catalog governance (live metadata)
 
-Generated 2026-10-19 13:19 by `ops/stage2_evidence.py`. Governance is applied by `agents/01_governance.sql` (function + tags) and by column `MASK` clauses in the pipeline SQL.
+Generated 2026-10-27 17:48 by `ops/stage2_evidence.py`. Governance is applied by `agents/01_governance.sql` (function + tags) and by column `MASK` clauses in the pipeline SQL.
 
 ## PII masking — what a non-HR user sees (query as the build user, not in plant_hr_admins)
 
@@ -39,33 +39,38 @@ mask_pii     | CASE WHEN is_member('plant_hr_admins') THEN value   -- workspace 
 ## Domain / ownership tags per table (IT vs OT vs integrated gold)
 
 ```
-table_name                         | domain | layer  | source_system | owner                 | steward                 | certification | pii 
------------------------------------+--------+--------+---------------+-----------------------+-------------------------+---------------+-----
-bronze_it_assets                   | IT     | bronze | erp           | manufacturing_it      | production_planning     | None          | None
-bronze_it_operators                | IT     | bronze | mes           | manufacturing_it      | plant_hr                | None          | true
-bronze_it_production_confirmations | IT     | bronze | mes           | manufacturing_it      | production_planning     | None          | None
-bronze_it_production_orders        | IT     | bronze | erp           | manufacturing_it      | production_planning     | None          | None
-bronze_it_shift_calendar           | IT     | bronze | mes           | manufacturing_it      | production_planning     | None          | None
-bronze_it_work_orders              | IT     | bronze | cmms          | manufacturing_it      | maintenance_planning    | None          | None
-bronze_ot_alarms                   | OT     | bronze | scada         | controls_engineering  | reliability_engineering | None          | None
-bronze_ot_historian                | OT     | bronze | historian     | controls_engineering  | reliability_engineering | None          | None
-bronze_ot_machine_states           | OT     | bronze | scada         | controls_engineering  | reliability_engineering | None          | None
-gold_asset_reliability             | IT_OT  | gold   | None          | operations_excellence | reliability_engineering | certified     | None
-gold_asset_shift_time              | IT_OT  | gold   | None          | operations_excellence | plant_performance       | certified     | None
-gold_downtime_events               | IT_OT  | gold   | None          | operations_excellence | reliability_engineering | certified     | None
-gold_oee_shift                     | IT_OT  | gold   | None          | operations_excellence | plant_performance       | certified     | None
-gold_ot_cycles_shift               | IT_OT  | gold   | None          | operations_excellence | plant_performance       | None          | None
-gold_shift_features                | IT_OT  | gold   | None          | operations_excellence | data_science            | None          | None
-silver_assets                      | IT     | silver | None          | manufacturing_it      | production_planning     | None          | None
-silver_operators                   | IT     | silver | None          | manufacturing_it      | plant_hr                | None          | true
-silver_production_confirmations    | IT     | silver | None          | manufacturing_it      | production_planning     | None          | None
-silver_production_orders           | IT     | silver | None          | manufacturing_it      | production_planning     | None          | None
-silver_shift_calendar              | IT     | silver | None          | manufacturing_it      | production_planning     | None          | None
-silver_work_orders                 | IT     | silver | None          | manufacturing_it      | maintenance_planning    | None          | None
-silver_ot_alarms                   | OT     | silver | None          | controls_engineering  | reliability_engineering | None          | None
-silver_ot_historian                | OT     | silver | None          | controls_engineering  | reliability_engineering | None          | None
-silver_ot_machine_states           | OT     | silver | None          | controls_engineering  | reliability_engineering | None          | None
-silver_ot_tag_minute               | OT     | silver | None          | controls_engineering  | reliability_engineering | None          | None
+table_name                         | domain | layer       | source_system | owner                 | steward                 | certification | pii 
+-----------------------------------+--------+-------------+---------------+-----------------------+-------------------------+---------------+-----
+bronze_it_assets                   | IT     | bronze      | erp           | manufacturing_it      | production_planning     | None          | None
+bronze_it_operators                | IT     | bronze      | mes           | manufacturing_it      | plant_hr                | None          | true
+bronze_it_production_confirmations | IT     | bronze      | mes           | manufacturing_it      | production_planning     | None          | None
+bronze_it_production_orders        | IT     | bronze      | erp           | manufacturing_it      | production_planning     | None          | None
+bronze_it_shift_calendar           | IT     | bronze      | mes           | manufacturing_it      | production_planning     | None          | None
+bronze_it_work_orders              | IT     | bronze      | cmms          | manufacturing_it      | maintenance_planning    | None          | None
+bronze_ot_alarms                   | OT     | bronze      | scada         | controls_engineering  | reliability_engineering | None          | None
+bronze_ot_historian                | OT     | bronze      | historian     | controls_engineering  | reliability_engineering | None          | None
+bronze_ot_machine_states           | OT     | bronze      | scada         | controls_engineering  | reliability_engineering | None          | None
+gold_asset_reliability             | IT_OT  | gold        | None          | operations_excellence | reliability_engineering | certified     | None
+gold_asset_risk                    | IT_OT  | gold        | None          | operations_excellence | data_science            | None          | None
+gold_asset_risk_insights           | IT_OT  | gold        | None          | operations_excellence | reliability_engineering | None          | None
+gold_asset_shift_time              | IT_OT  | gold        | None          | operations_excellence | plant_performance       | certified     | None
+gold_at_risk_queue                 | IT_OT  | gold        | None          | operations_excellence | plant_performance       | None          | None
+gold_downtime_events               | IT_OT  | gold        | None          | operations_excellence | reliability_engineering | certified     | None
+gold_oee_shift                     | IT_OT  | gold        | None          | operations_excellence | plant_performance       | certified     | None
+gold_ot_cycles_shift               | IT_OT  | gold        | None          | operations_excellence | plant_performance       | None          | None
+gold_shift_features                | IT_OT  | gold        | None          | operations_excellence | data_science            | None          | None
+lb_supervisor_actions_history      | IT_OT  | operational | lakebase_app  | operations_excellence | None                    | None          | None
+lb_work_order_requests_history     | IT_OT  | operational | lakebase_app  | operations_excellence | None                    | None          | None
+silver_assets                      | IT     | silver      | None          | manufacturing_it      | production_planning     | None          | None
+silver_operators                   | IT     | silver      | None          | manufacturing_it      | plant_hr                | None          | true
+silver_production_confirmations    | IT     | silver      | None          | manufacturing_it      | production_planning     | None          | None
+silver_production_orders           | IT     | silver      | None          | manufacturing_it      | production_planning     | None          | None
+silver_shift_calendar              | IT     | silver      | None          | manufacturing_it      | production_planning     | None          | None
+silver_work_orders                 | IT     | silver      | None          | manufacturing_it      | maintenance_planning    | None          | None
+silver_ot_alarms                   | OT     | silver      | None          | controls_engineering  | reliability_engineering | None          | None
+silver_ot_historian                | OT     | silver      | None          | controls_engineering  | reliability_engineering | None          | None
+silver_ot_machine_states           | OT     | silver      | None          | controls_engineering  | reliability_engineering | None          | None
+silver_ot_tag_minute               | OT     | silver      | None          | controls_engineering  | reliability_engineering | None          | None
 ```
 
 ## Lineage captured by Unity Catalog (system.access.table_lineage) — raw volume to gold
@@ -76,11 +81,20 @@ source                                                                   | targe
 /Volumes/nraameast1_catalog/plant_floor_oee_febar/raw/it/assets/         | bronze_it_assets               
 /Volumes/nraameast1_catalog/plant_floor_oee_febar/raw/it/operators/      | bronze_it_operators            
 /Volumes/nraameast1_catalog/plant_floor_oee_febar/raw/it/shift_calendar/ | bronze_it_shift_calendar       
+gold_at_risk_queue                                                       | gold_alert_response            
+gold_supervisor_actions                                                  | gold_alert_response            
+silver_shift_calendar                                                    | gold_alert_response            
 gold_downtime_events                                                     | gold_asset_reliability         
 gold_oee_shift                                                           | gold_asset_reliability         
 silver_assets                                                            | gold_asset_reliability         
+gold_asset_risk                                                          | gold_asset_risk_insights       
+silver_assets                                                            | gold_asset_risk_insights       
+silver_work_orders                                                       | gold_asset_risk_insights       
 silver_ot_machine_states                                                 | gold_asset_shift_time          
 silver_shift_calendar                                                    | gold_asset_shift_time          
+gold_asset_risk                                                          | gold_at_risk_queue             
+gold_asset_risk_insights                                                 | gold_at_risk_queue             
+silver_assets                                                            | gold_at_risk_queue             
 silver_assets                                                            | gold_downtime_events           
 silver_ot_machine_states                                                 | gold_downtime_events           
 silver_shift_calendar                                                    | gold_downtime_events           
@@ -97,6 +111,10 @@ silver_assets                                                            | gold_
 silver_ot_alarms                                                         | gold_shift_features            
 silver_ot_tag_minute                                                     | gold_shift_features            
 silver_shift_calendar                                                    | gold_shift_features            
+lb_supervisor_actions_history                                            | gold_supervisor_actions        
+lb_work_order_requests_history                                           | gold_work_order_requests       
+gold_at_risk_queue                                                       | lb_at_risk_queue               
+gold_oee_shift                                                           | lb_oee_shift                   
 bronze_it_assets                                                         | silver_assets                  
 bronze_it_operators                                                      | silver_operators               
 bronze_ot_alarms                                                         | silver_ot_alarms               

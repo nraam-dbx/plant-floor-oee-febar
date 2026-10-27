@@ -56,11 +56,13 @@ SELECT asset_id, asset_name, scored_shift_id, risk_score, at_risk, top_drivers, 
 FROM answered;
 
 -- At-risk queue served to the app through Lakebase: every asset's latest risk, flattened (no arrays/structs)
--- so it maps cleanly to Postgres columns. Synced to Lakebase oee.at_risk_queue (resources/lakebase.yml).
-CREATE OR REPLACE TABLE nraameast1_catalog.plant_floor_oee_febar.gold_at_risk_queue
-COMMENT 'One row per asset: latest next-shift risk + drivers + LLM work-order draft. Source of Lakebase oee.at_risk_queue.'
+-- so it maps cleanly to Postgres columns. Synced to Lakebase lb_at_risk_queue (resources/lakebase.yml, TRIGGERED).
+-- Published with MERGE, never CREATE OR REPLACE: the synced table streams this table's change feed, and replacing the
+-- table gave it a new Delta table id that broke the sync checkpoint (DIFFERENT_DELTA_TABLE_READ_BY_STREAMING_SOURCE).
+CREATE TABLE IF NOT EXISTS nraameast1_catalog.plant_floor_oee_febar.gold_at_risk_queue
+COMMENT 'One row per asset: latest next-shift risk + drivers + LLM work-order draft. Source of Lakebase lb_at_risk_queue.'
 TBLPROPERTIES (delta.enableChangeDataFeed = true)
-AS SELECT r.asset_id, a.asset_name, a.work_center, a.criticality, r.scored_shift_id,
+AS SELECT * FROM (SELECT r.asset_id, a.asset_name, a.work_center, a.criticality, r.scored_shift_id,
   round(r.oee, 4) AS current_oee, round(r.vib_mean_running, 3) AS vibration_mm_s, round(r.vib_trend_vs_prev6, 3) AS vibration_trend,
   round(r.risk_score, 4) AS risk_score, r.at_risk, array_join(r.top_drivers, '; ') AS top_drivers, r.model_version,
   i.insight.probable_cause, i.insight.recommended_action, i.insight.urgency, i.insight.confidence,
@@ -69,4 +71,20 @@ AS SELECT r.asset_id, a.asset_name, a.work_center, a.criticality, r.scored_shift
   i.generated_at AS insight_generated_at, current_timestamp() AS published_at
 FROM nraameast1_catalog.plant_floor_oee_febar.gold_asset_risk r
 JOIN nraameast1_catalog.plant_floor_oee_febar.silver_assets a USING (asset_id)
-LEFT JOIN nraameast1_catalog.plant_floor_oee_febar.gold_asset_risk_insights i USING (asset_id);
+LEFT JOIN nraameast1_catalog.plant_floor_oee_febar.gold_asset_risk_insights i USING (asset_id)) WHERE false;
+
+MERGE INTO nraameast1_catalog.plant_floor_oee_febar.gold_at_risk_queue t
+USING (SELECT r.asset_id, a.asset_name, a.work_center, a.criticality, r.scored_shift_id,
+  round(r.oee, 4) AS current_oee, round(r.vib_mean_running, 3) AS vibration_mm_s, round(r.vib_trend_vs_prev6, 3) AS vibration_trend,
+  round(r.risk_score, 4) AS risk_score, r.at_risk, array_join(r.top_drivers, '; ') AS top_drivers, r.model_version,
+  i.insight.probable_cause, i.insight.recommended_action, i.insight.urgency, i.insight.confidence,
+  i.insight.work_order.priority AS wo_priority, i.insight.work_order.problem_description AS wo_problem_description,
+  array_join(i.insight.work_order.planned_tasks, '\n') AS wo_planned_tasks, i.insight.work_order.estimated_hours AS wo_estimated_hours,
+  i.generated_at AS insight_generated_at, current_timestamp() AS published_at
+FROM nraameast1_catalog.plant_floor_oee_febar.gold_asset_risk r
+JOIN nraameast1_catalog.plant_floor_oee_febar.silver_assets a USING (asset_id)
+LEFT JOIN nraameast1_catalog.plant_floor_oee_febar.gold_asset_risk_insights i USING (asset_id)) s
+ON t.asset_id = s.asset_id
+WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *
+WHEN NOT MATCHED BY SOURCE THEN DELETE;

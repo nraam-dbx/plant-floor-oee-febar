@@ -91,7 +91,7 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - Every number traces to `docs/deck/VALUE_MODEL.md` (measured vs labelled assumptions A1–A6).
 
 ## Notes / issues encountered
-- Do NOT reuse anything from the volta projects (user instruction). Build Lakebase sync etc. fresh.
+- Everything here is built from scratch for this project (no code reused from other demo projects).
 - **Workspace is SERVERLESS-ONLY** ("Only serverless compute is supported"): no job/ML clusters. ML notebook pip-installs
   mlflow/sklearn/shap. Always read full `bundle deploy` output — a failed deploy once left the job on old tasks.
 - Workspace has many workspace-wide **governed tag policies** (`Domain`, `PII`, `data_owner`, `data_product`…). Our UC tags
@@ -116,6 +116,9 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - CLI OAuth refresh token expires after ~a week idle → `databricks auth login --profile fevm-nraameast1`.
 - Supervisor → app MCP got 401 until the app SP had CAN_USE on its own app. Complex agent turns take ~100 s.
 - Flow-style YAML needs `${var.x}` quoted (`{id: "${var.warehouse_id}"}`).
+- Never CREATE OR REPLACE a synced table's source: the rebuild gave `gold_at_risk_queue` a new Delta table id and the
+  TRIGGERED sync failed with DIFFERENT_DELTA_TABLE_READ_BY_STREAMING_SOURCE. Publish with MERGE; to recover, run the sync
+  pipeline with `--full-refresh`, then re-apply app grants (`./ops/app_post_deploy.sh`).
 - Statements API is stateless: `ops/run_sql_file.py` turns `USE CATALOG/SCHEMA` into request catalog/schema params.
 - `plant_hr_admins` is a WORKSPACE group (id 2126379324037637); mask uses `is_member()` because there is no account-console access
   on the FEVM account, so `is_account_group_member()` can't see it. Unmask path (adding a member) not yet verified.
