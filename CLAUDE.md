@@ -85,7 +85,7 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - Evidence: `python3 ops/stage6_evidence.py`.
 
 ## Business deck
-- Google Slides (2025 corporate template): https://docs.google.com/presentation/d/1zPsEygdI09wXjB8k0mVahlBSJXnItOMG5RB65P1vNqk/edit
+- Google Slides (2025 corporate template): https://docs.google.com/presentation/d/106gIq7Au0rWOad5vunRsuJ9LKjbgqibKK4UZ7-wsdyA/edit
 - Submission PDF: `docs/FEBAR_business_deck.pdf`. Source: `docs/deck/deck_spec.json` → `python3 docs/deck/build_deck.py
   docs/deck/deck_spec.json "<title>" docs/FEBAR_business_deck.pdf` (creates a NEW presentation; trash the old one).
 - Every number traces to `docs/deck/VALUE_MODEL.md` (measured vs labelled assumptions A1–A6).

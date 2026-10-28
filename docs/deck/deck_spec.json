@@ -31,12 +31,12 @@
    [
     "28-day baseline · 12 assets · 1,008 asset-shifts",
     "All other shifts",
-    "4 days before a breakdown (130 shifts)"
+    "4 days before a breakdown (133 shifts)"
    ],
    [
     "OEE",
-    "76.4 %",
-    "58.5 %"
+    "76.5 %",
+    "58.4 %"
    ],
    [
     "Availability",
@@ -46,12 +46,12 @@
    [
     "Performance (speed loss, minor stops)",
     "86.2 %",
-    "72.9 %"
+    "73.0 %"
    ],
    [
     "Quality (scrap rate)",
     "97.9 % (1.9 % scrap)",
-    "92.6 % (7.0 % scrap)"
+    "92.6 % (6.9 % scrap)"
    ],
    [
     "Unplanned downtime",
@@ -61,7 +61,7 @@
    [
     "Plant OEE overall",
     "74.1 % against a 75 % target",
-    "Closing these windows alone is worth +2.3 points"
+    "Closing these windows alone is worth +2.4 points"
    ]
   ],
   "y": 1.45,

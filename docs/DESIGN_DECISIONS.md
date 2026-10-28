@@ -8,8 +8,8 @@ What was chosen at each stage, what it was weighed against, and what we gave up.
   value lands in a KPI they report. The shift is the unit a supervisor can act on: at handover they decide what runs,
   what gets maintenance, and what parts to stage. A daily or weekly prediction is too coarse to change that decision.
 - **Why IT + OT together.** Neither side alone explains the loss. The historian shows vibration rising but not what it
-  costs; ERP/MES shows the scrap and missed orders but not why. The 4 days before a breakdown run at 58.5 % OEE vs
-  76.4 % otherwise, and only the joined data shows that both happen to the same asset at the same time.
+  costs; ERP/MES shows the scrap and missed orders but not why. The 4 days before a breakdown run at 58.4 % OEE vs
+  76.5 % otherwise, and only the joined data shows that both happen to the same asset at the same time.
 - **Synthetic data, realistic defects.** We simulate one plant minute by minute, with failure ramps and the defects real
   feeds have (BAD OPC quality, sensor spikes, unmapped tags, negative scrap). The pipeline is judged on catching them.
 

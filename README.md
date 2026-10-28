@@ -3,7 +3,7 @@
 **Problem.** A power-generation equipment manufacturer's component plants keep machine data (historian / SCADA, the
 OT side) and business data (ERP / MES / CMMS, the IT side) in separate systems with different asset identifiers.
 Nobody can see, early enough, that a machine is degrading, so slow failures run all the way to breakdowns. In this demo
-the 4 days before a breakdown run at **58.5 % OEE vs 76.4 %** otherwise, with 3.7× the scrap rate ([`evidence/12`](evidence/12_value_baseline.md)).
+the 4 days before a breakdown run at **58.4 % OEE vs 76.5 %** otherwise, with 3.6× the scrap rate ([`evidence/12`](evidence/12_value_baseline.md)).
 
 **What this builds.** One end-to-end data journey on Databricks, from raw synthetic plant data to a supervisor taking
 action, keyed on a single `asset_id`:
