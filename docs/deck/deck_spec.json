@@ -35,8 +35,8 @@
    ],
    [
     "OEE",
-    "76.5 %",
-    "58.2 %"
+    "76.4 %",
+    "58.5 %"
    ],
    [
     "Availability",
@@ -61,7 +61,7 @@
    [
     "Plant OEE overall",
     "74.1 % against a 75 % target",
-    "Closing these windows alone is worth +2.4 points"
+    "Closing these windows alone is worth +2.3 points"
    ]
   ],
   "y": 1.45,
@@ -286,7 +286,7 @@
    ],
    [
     "App grants, closed-loop action, 2.1 min KPI",
-    "evidence/10, evidence/11"
+    "evidence/10, evidence/06 (Postgres grants)"
    ],
    [
     "Value math and assumptions",

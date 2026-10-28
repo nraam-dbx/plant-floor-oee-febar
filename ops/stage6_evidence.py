@@ -31,7 +31,7 @@ out += [f"{'app (own MCP endpoint)':28s} {'app':16s} {'CAN_USE':24s} granted so 
         for a in perms.get("access_control_list", []) if a.get("service_principal_name") == app["service_principal_client_id"]]
 out += ["```", "", "Postgres-side grants for the same role (lakebase/03_app_grants.sql): SELECT on the synced tables, "
         "SELECT+INSERT on ops.supervisor_actions / ops.work_order_requests, UPDATE(status, updated_at) only — see "
-        "`11_app_grants_run.ipynb`.", "",
+        "the grant query output in [`06_lakebase_setup_run.md`](06_lakebase_setup_run.md).", "",
         "## App API (served from Lakebase as the app's service principal)", "", "```",
         "GET /api/health   " + json.dumps(call("/api/health")),
         "GET /api/summary  " + json.dumps(call("/api/summary"))]

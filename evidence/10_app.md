@@ -22,7 +22,7 @@ tbl_work_orders              uc_securable     SELECT                   nraameast
 app (own MCP endpoint)       app              CAN_USE                  granted so the Supervisor can call /mcp as this SP
 ```
 
-Postgres-side grants for the same role (lakebase/03_app_grants.sql): SELECT on the synced tables, SELECT+INSERT on ops.supervisor_actions / ops.work_order_requests, UPDATE(status, updated_at) only — see `11_app_grants_run.ipynb`.
+Postgres-side grants for the same role (lakebase/03_app_grants.sql): SELECT on the synced tables, SELECT+INSERT on ops.supervisor_actions / ops.work_order_requests, UPDATE(status, updated_at) only — see the grant query output in [`06_lakebase_setup_run.md`](06_lakebase_setup_run.md).
 
 ## App API (served from Lakebase as the app's service principal)
 

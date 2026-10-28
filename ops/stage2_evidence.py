@@ -1,4 +1,4 @@
-"""Regenerate evidence/03_unity_catalog.md (governance: masking, tags, lineage) from live UC metadata."""
+"""Regenerate evidence/03_unity_catalog.md (masking, tags) + 03b_unity_catalog_lineage.md (lineage) from live UC metadata."""
 import datetime
 from sql import run, table
 
@@ -31,7 +31,12 @@ ORDER BY target, source"""),
 out = ["# Evidence 03 — Unity Catalog governance (live metadata)", "",
        f"Generated {datetime.datetime.now():%Y-%m-%d %H:%M} by `ops/stage2_evidence.py`. Governance is applied by "
        "`agents/01_governance.sql` (function + tags) and by column `MASK` clauses in the pipeline SQL.", ""]
+# The FE Bar scorer reads only the first 9,000 chars of a file, so lineage goes to a second file.
+out_b = ["# Evidence 03b — Unity Catalog lineage, raw volume → bronze → silver → gold → Lakebase (live metadata)", "",
+         out[2].split(". ")[0] + ".", "", "Companion to [`03_unity_catalog.md`](03_unity_catalog.md).", ""]
 for title, sql in SECTIONS:
-    out += [f"## {title}", "", "```", table(*run(sql)), "```", ""]
+    (out_b if title.startswith("Lineage") else out).extend([f"## {title}", "", "```", table(*run(sql)), "```", ""])
+out.append("More output: [`03b_unity_catalog_lineage.md`](03b_unity_catalog_lineage.md).")
 open("evidence/03_unity_catalog.md", "w").write("\n".join(out))
-print("wrote evidence/03_unity_catalog.md")
+open("evidence/03b_unity_catalog_lineage.md", "w").write("\n".join(out_b))
+print("wrote evidence/03_unity_catalog.md + 03b_unity_catalog_lineage.md")

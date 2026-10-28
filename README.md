@@ -3,7 +3,7 @@
 **Problem.** A power-generation equipment manufacturer's component plants keep machine data (historian / SCADA, the
 OT side) and business data (ERP / MES / CMMS, the IT side) in separate systems with different asset identifiers.
 Nobody can see, early enough, that a machine is degrading, so slow failures run all the way to breakdowns. In this demo
-the 4 days before a breakdown run at **58 % OEE vs 76.5 %** otherwise, with 3.7× the scrap rate.
+the 4 days before a breakdown run at **58.5 % OEE vs 76.4 %** otherwise, with 3.7× the scrap rate ([`evidence/12`](evidence/12_value_baseline.md)).
 
 **What this builds.** One end-to-end data journey on Databricks, from raw synthetic plant data to a supervisor taking
 action, keyed on a single `asset_id`:
@@ -22,8 +22,9 @@ action, keyed on a single `asset_id`:
 Alert → first supervisor action: 2.1 min. Value per 12-asset line, base case: +1.0 OEE point, ~500 fewer unplanned
 hours, ≈ $2.75 M / year (range $1.0 M – $7.7 M; assumptions in [`docs/deck/VALUE_MODEL.md`](docs/deck/VALUE_MODEL.md)).
 
+* **Start here:** [`EVIDENCE.md`](EVIDENCE.md) (what ran, with the real output per stage) · [`docs/DESIGN_DECISIONS.md`](docs/DESIGN_DECISIONS.md) (choices and trade-offs)
 * **Business deck:** [`docs/FEBAR_business_deck.pdf`](docs/FEBAR_business_deck.pdf)
-* **Execution evidence (text):** [`evidence/`](evidence/README.md): notebook runs with outputs, live query results, eval scores
+* **Execution evidence (text):** [`evidence/`](evidence/README.md): job-run outputs, live query results, eval scores (each file < 9,000 chars; full notebook exports in `evidence/raw/`)
 * **Demo:** [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) · runbook [`docs/HOW_TO_DEMO_RUNBOOK.md`](docs/HOW_TO_DEMO_RUNBOOK.md)
 
 All data is synthetic (`data_generation/generate_plant_data.py`, seed 42). No customer data, names or systems appear

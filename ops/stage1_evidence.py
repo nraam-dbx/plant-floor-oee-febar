@@ -1,4 +1,4 @@
-"""Regenerate evidence/02_lakeflow_pipeline.md from live query results (run from project root after a build)."""
+"""Regenerate evidence/02_lakeflow_pipeline.md + 02b_lakeflow_gold_reliability.md from live query results (run from project root after a build)."""
 import json, subprocess, datetime
 from sql import run, table
 
@@ -71,7 +71,13 @@ out = ["# Evidence 02 — Lakeflow medallion pipeline (live query output)", "",
        f"`{S}` on the SQL warehouse.", "",
        f"Pipeline `plant_oee_medallion` id `{pid}` · update `{upd['update_id']}` · state **{upd['state']}** · "
        f"cause {upd['cause']} · full_refresh={upd.get('full_refresh')}", ""]
+# The FE Bar scorer reads only the first 9,000 chars of a file, so gold-layer sections go to a second file.
+B_SECTIONS = ("Asset reliability", "CNC-03", "Downtime linked", "ML label")
+out_b = ["# Evidence 02b — Lakeflow gold layer: reliability, OT-leads-IT signal, downtime↔work orders (live query output)", "",
+         out[2], "", "Same pipeline update as [`02_lakeflow_pipeline.md`](02_lakeflow_pipeline.md).", ""]
 for title, sql in SECTIONS:
-    out += [f"## {title}", "", "```", table(*run(sql)), "```", ""]
+    (out_b if title.startswith(B_SECTIONS) else out).extend([f"## {title}", "", "```", table(*run(sql)), "```", ""])
+out.append("More output: [`02b_lakeflow_gold_reliability.md`](02b_lakeflow_gold_reliability.md).")
 open("evidence/02_lakeflow_pipeline.md", "w").write("\n".join(out))
-print("wrote evidence/02_lakeflow_pipeline.md")
+open("evidence/02b_lakeflow_gold_reliability.md", "w").write("\n".join(out_b))
+print("wrote evidence/02_lakeflow_pipeline.md + 02b_lakeflow_gold_reliability.md")

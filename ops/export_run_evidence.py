@@ -1,4 +1,5 @@
-"""Export a Databricks notebook job-task run (code + outputs) to a .ipynb under evidence/ — text the evaluator can read."""
+"""Export a Databricks notebook job-task run (code + outputs) to a .ipynb under evidence/raw/ — text the evaluator can read.
+Then render the compact Markdown copy with ops/nb_to_md.py (the scorer reads only the first 9,000 chars of a file)."""
 import base64, json, re, subprocess, sys, urllib.parse
 
 def export(task_run_id, out_path, profile="fevm-nraameast1"):

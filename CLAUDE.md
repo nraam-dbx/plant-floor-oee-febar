@@ -138,7 +138,9 @@ databricks bundle run plant_oee_build    # generate_data (serverless nb) -> plan
 - **Confidentiality:** the repo is public-bound. NO customer name, people, or customer data in tracked files — say
   "a power-generation equipment manufacturer". Synthetic data only. Customer-named collateral goes in
   `customer_private/` (gitignored, never pushed).
-- Evidence rule: evaluator reads TEXT only. Commit outputs to `evidence/` (ipynb with outputs, JSON/CSV, logs).
+- Evidence rule: evaluator reads TEXT only, max 30 files, first 9,000 chars per file, 90,000 total (FE Bar FAQ). Keep every
+  `evidence/*.md` and `EVIDENCE.md` < 9,000 chars, outputs first. Job runs: `ops/export_run_evidence.py` → `evidence/raw/*.ipynb`,
+  then `ops/nb_to_md.py` → `evidence/*.md`. Value baseline: `python3 ops/value_evidence.py`.
 
 ## Design (six stages, one data journey)
 1. **Lakeflow** — OT: 1-min historian tags + machine states/alarms (Auto Loader, streaming) · IT: ERP/MES production
