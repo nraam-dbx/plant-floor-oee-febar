@@ -22,7 +22,7 @@ action, keyed on a single `asset_id`:
 Alert → first supervisor action: 2.1 min. Value per 12-asset line, base case: +1.0 OEE point, ~500 fewer unplanned
 hours, ≈ $2.75 M / year (range $1.0 M – $7.7 M; assumptions in [`docs/deck/VALUE_MODEL.md`](docs/deck/VALUE_MODEL.md)).
 
-* **Start here:** [`EVIDENCE.md`](EVIDENCE.md) (what ran, with the real output per stage) · [`docs/DESIGN_DECISIONS.md`](docs/DESIGN_DECISIONS.md) (choices and trade-offs)
+* **Start here:** [`EVIDENCE.md`](EVIDENCE.md) (what ran, with the real output per stage) · [`docs/DESIGN_DECISIONS.md`](docs/DESIGN_DECISIONS.md) (choices and trade-offs) · [`BUILD.md`](BUILD.md) (how I built it: AI tools, where they helped, where I stepped in)
 * **Business deck:** [`docs/FEBAR_business_deck.pdf`](docs/FEBAR_business_deck.pdf)
 * **Execution evidence (text):** [`evidence/`](evidence/README.md): job-run outputs, live query results, eval scores (each file < 9,000 chars; full notebook exports in `evidence/raw/`)
 * **Demo:** [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) · runbook [`docs/HOW_TO_DEMO_RUNBOOK.md`](docs/HOW_TO_DEMO_RUNBOOK.md)
