@@ -38,3 +38,23 @@ Every number is either **measured** in the demo (synthetic data, 12 assets, 28 d
 Not counted (upside): secondary damage avoided by not running to failure, throughput gained in recovered shifts (would
 double-count downtime), MTTR reduction from pre-staged parts and AI-drafted work orders (not measured in the demo).
 Platform run cost (serverless pipeline/jobs, Lakebase 0.5–2 CU, model + agent serving) to be sized in the POC.
+
+## Network rollout (deck slide 11)
+| ID | Assumption | Value |
+|---|---|---|
+| A7 | Footprint: 2 plants in each of North America, EMEA and APJ, 5 lines per plant | 30 lines |
+| A8 | Every line has a loss profile like the pilot line (to be checked line by line during the pilot and plant rollout) | per-line value as above |
+| A9 | Rollout order and pace: pilot line → rest of North America → EMEA → APJ | 1 / 10 / 20 / 30 lines at months 3 / 9 / 18 / 24 |
+
+| Milestone | Lines | Run-rate value / yr (low · base · high) |
+|---|---|---|
+| Pilot (month 3) | 1 | $1.0 M · **$2.75 M** · $7.7 M |
+| North America (month 9) | 10 | $10 M · **$27.5 M** · $77 M |
+| EMEA (month 18) | 20 | $20 M · **$55 M** · $154 M |
+| APJ, full network (month 24) | 30 | $30 M · **$82.5 M** · $231 M |
+
+At full run-rate (base): ~15,000 unplanned hours (30 × 500) and ~75,000 scrapped parts (30 × 2,500) avoided per year.
+**Capacity without capex:** +1.0 OEE point on a 74.1 % line is 1.0 / 74.1 = +1.35 % good output from installed equipment;
+across 30 lines ≈ 0.4 of a line of capacity the network does not have to buy. Run-rate is reached at each milestone,
+not counted cumulatively; year-1 realized value is lower while lines come online. If A8 fails for some lines, scale
+the totals by the share of lines that do match.
