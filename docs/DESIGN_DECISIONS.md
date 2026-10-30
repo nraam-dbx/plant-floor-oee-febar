@@ -40,9 +40,10 @@ What was chosen at each stage, what it was weighed against, and what we gave up.
   (`is_account_group_member`). Every real grant in this build goes to a service principal.
 
 ## 3 · ML and GenAI
-- **Model: gradient-boosted trees on shift features**, label `next_shift_oee < 0.65`. Tabular, small data, mixed
-  signals → boosted trees beat a deep model on effort and explainability. `class_weight="balanced"` because only ~12 %
-  of shifts are at risk.
+- **Model: gradient-boosted trees on shift features**, label `next_shift_oee < 0.65`. Small tabular data with mixed
+  signals: boosted trees train in seconds, need no feature scaling, and explain each prediction with SHAP. We did not
+  benchmark other model families; the bar was beating today's rule, and it does. `class_weight="balanced"` because
+  only ~12 % of shifts are at risk.
 - **Time-based split, not random.** Train on the first 20 days, test on the last 8. A random split would leak a failure
   ramp into both sets and overstate accuracy.
 - **Measured against what supervisors do today** ("this shift is already under 0.65"), not against zero. Precision
@@ -55,9 +56,11 @@ What was chosen at each stage, what it was weighed against, and what we gave up.
   given (an earlier version invented SOP numbers).
 
 ## 4 · Lakebase
-- **Why not have the app query Delta directly?** The supervisor screen needs millisecond point reads and *writes*
-  (acknowledge, approve). A SQL warehouse is built for scans, not transactional updates. Lakebase gives Postgres
-  semantics (0.024 ms point lookup) while UC stays the system of record.
+- **Why not have the app query Delta directly?** Reads alone would work on a SQL warehouse at this size. The reason is
+  the *writes*: every acknowledge and approve is a small transaction from many supervisor screens at once, with row
+  updates and constraints. That is Postgres work, not warehouse work. Lakebase gives the app a transactional store,
+  without a separate database to run, while UC stays the system of record. It also keeps app reads off the warehouse,
+  so screens stay fast when the plant grows past 12 assets.
 - **Synced tables, two modes.** The at-risk queue is TRIGGERED (incremental, refreshed after each scoring run); shift OEE
   is a SNAPSHOT (rebuilt history). Lesson learned: never `CREATE OR REPLACE` a synced table's source, which changes the
   Delta table id and breaks the sync; publish with `MERGE`.
@@ -76,6 +79,10 @@ What was chosen at each stage, what it was weighed against, and what we gave up.
   the app. In a plant, an action that takes a machine out of production needs a named person.
 - **Evaluated, not just demoed.** 10 questions with expected facts, scored by MLflow judges for correctness, relevance,
   safety, plant rules and routing. The first runs (correctness 0.7, plant rules 0.6) drove instruction fixes.
+- **Trade-off we accept: latency.** Answers take 10–55 s in the eval, and multi-tool turns up to ~100 s, because the
+  Supervisor plans and calls tools in sequence. Fine for a handover question, too slow for a chat-heavy screen. Next
+  steps: send plain metric questions straight to Genie, cache the per-shift briefing for at-risk assets, and try a
+  faster model for routing.
 
 ## 6 · Databricks App
 - **App on Databricks, not a BI dashboard,** because the job is *act*, not just look: acknowledge, approve and ask, in
@@ -89,6 +96,8 @@ What was chosen at each stage, what it was weighed against, and what we gave up.
   whole build can be redeployed into the customer's workspace for a POC.
 
 ## What we'd do next in a POC
-Replace synthetic feeds with the plant's historian and MES extracts through Lakeflow Connect or the existing landing zone;
+Replace synthetic feeds with the plant's own: historian data through its existing export or a partner connector into
+a landing volume (or streaming ingestion for live tags), and ERP/MES through Lakeflow Connect where a connector exists;
+bronze gets mapped to their formats, while the silver and gold logic (key map, OEE, features) carries over;
 swap assumptions A1–A6 in the value model for the customer's numbers; add account-group grants; and run the agent
 eval on questions written by the plant's own supervisors.
